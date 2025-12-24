@@ -15,6 +15,7 @@ import {
   FileDown,
   FileBraces,
   Database,
+  Image,
 } from 'lucide-react';
 import { TbBrandGolang, TbFileTypeJsx, TbNumber64Small, TbReplace } from 'react-icons/tb';
 import { LuFileJson2 } from 'react-icons/lu';
@@ -49,13 +50,13 @@ import { BsShadows } from 'react-icons/bs';
 
 export const NAVIGATION = new NavigationManager([
   {
-    label: 'Color',
+    label: 'Color Tools',
     icon: <Palette />,
     items: [
       {
         label: 'Color Picker',
         fullName: 'Color Picker',
-        path: '/color/color-picker',
+        path: '/color-tools/color-picker',
         icon: <PaintBucket />,
         tags: ['Color Shades'],
         summary:
@@ -64,7 +65,7 @@ export const NAVIGATION = new NavigationManager([
       {
         label: 'Gradient Editor',
         fullName: 'Color Gradient Editor',
-        path: '/color/gradient-editor',
+        path: '/color-tools/gradient-editor',
         icon: <Rainbow />,
         tags: [
           'CSS Gradient',
@@ -79,7 +80,7 @@ export const NAVIGATION = new NavigationManager([
       {
         label: 'Contrast Checker',
         fullName: 'Color Contrast Checker',
-        path: '/color/contrast-checker',
+        path: '/color-tools/contrast-checker',
         icon: <Baseline />,
         sourceUrl: 'https://www.npmjs.com/package/tinycolor2',
         summary:
@@ -89,12 +90,12 @@ export const NAVIGATION = new NavigationManager([
   },
 
   {
-    label: 'CSS',
+    label: 'CSS Tools',
     icon: <SiCss3 />,
     items: [
       {
         label: 'CSS Triangle',
-        path: '/css/css-triangle',
+        path: '/css-tools/css-triangle',
         fullName: 'CSS Triangle Generator',
         icon: <Triangle />,
         summary:
@@ -102,7 +103,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'CSS Unit Converter',
-        path: '/css/css-unit-converter',
+        path: '/css-tools/css-unit-converter',
         icon: <SquaresUnite />,
         tags: ['px to rem', 'rem to px', 'px to em', 'em to px', 'rem to em', 'em to rem'],
         sourceUrl: 'https://github.com/ArthurArakelyan/css-unit-converter-js',
@@ -111,7 +112,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'Smooth Shadow Editor',
-        path: '/css/smooth-shadow-editor',
+        path: '/css-tools/smooth-shadow-editor',
         fullName: 'CSS Smooth Shadow Editor',
         tags: ['Smooth Shadow Generator'],
         icon: <BsShadows />,
@@ -557,14 +558,14 @@ export const NAVIGATION = new NavigationManager([
     items: [
       {
         label: 'Markdown Editor',
-        path: '/other/markdown-editor',
+        path: '/other-tools/markdown-editor',
         tags: ['Markdown Viewer', 'Markdown Preview', 'Readme Preview', 'Readme Viewer'],
         summary: `A writing tool for fast, lightweight documentation. Features live preview for instant Markdown rendering, making writing and formatting effortless.`,
         icon: <SiMarkdown />,
       },
       {
         label: 'UUID Generator',
-        path: '/other/uuid-generator',
+        path: '/other-tools/uuid-generator',
         tags: [
           'Unique ID Generator',
           'Random UUID',
@@ -579,7 +580,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'URL Parser',
-        path: '/other/url-parser',
+        path: '/other-tools/url-parser',
         tags: ['Query params'],
         summary:
           'Breaks down a URL into its core components: protocol, hostname, path, query parameters, and fragment. Ideal for debugging and analysis.',
@@ -587,7 +588,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'Base64 File / Image Encoder',
-        path: '/other/base64-file-encoder',
+        path: '/other-tools/base64-file-encoder',
         tags: [
           'Convert a File to Base64',
           'Convert an Image to Base64',
@@ -600,7 +601,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'Base64 File / Image Decoder',
-        path: '/other/base64-file-decoder',
+        path: '/other-tools/base64-file-decoder',
         tags: [
           'Convert a Base64 to File',
           'Convert a Base64 to an Image',
@@ -613,7 +614,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'QR Code Generator',
-        path: '/other/qr-code',
+        path: '/other-tools/qr-code',
         icon: <QrCode />,
         sourceUrl: 'https://github.com/kozakdenys/qr-code-styling',
         summary:
@@ -621,7 +622,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'Lorem Ipsum Generator',
-        path: '/other/random-text',
+        path: '/other-tools/random-text',
         tags: ['Random Text Generator'],
         icon: <Type />,
         summary:
@@ -629,7 +630,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'Word Counter',
-        path: '/other/word-counter',
+        path: '/other-tools/word-counter',
         tags: ['Sentence Counter', 'Text Counter'],
         icon: <WholeWord />,
         summary:
@@ -637,7 +638,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'JSON Editor',
-        path: '/other/json-editor',
+        path: '/other-tools/json-editor',
         tags: ['JSON Viewer', 'JSON Validator'],
         icon: <FileBraces />,
         sourceUrl: 'https://www.npmjs.com/package/vanilla-jsoneditor',
@@ -646,7 +647,7 @@ export const NAVIGATION = new NavigationManager([
       },
       {
         label: 'Data Size Converter',
-        path: '/other/data-size-converter',
+        path: '/other-tools/data-size-converter',
         fullName: 'Data Size Converter',
         tags: ['File Size Converter'],
         icon: <Database />,
