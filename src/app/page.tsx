@@ -28,7 +28,7 @@ export default function Home() {
             </ClientOnly>
 
             <Button asChild variant="outline" size="icon">
-              <a href="https://github.com/xristosn/dev-x-kit" target='_blank'>
+              <a href="https://github.com/xristosn/dev-x-kit" target="_blank">
                 <BsGithub />
               </a>
             </Button>
