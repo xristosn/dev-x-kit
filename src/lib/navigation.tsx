@@ -644,6 +644,14 @@ export const NAVIGATION = new NavigationManager([
         summary:
           'A versatile web-based tool to view, edit, and format JSON data with tree view, code editor, and schema validation.',
       },
+      {
+        label: 'Data Size Converter',
+        path: '/other/data-size-converter',
+        fullName: 'Data Size Converter',
+        tags: ['File Size Converter'],
+        icon: <Database />,
+        summary: `Converts between various data storage units (bits, bytes, KB, MB, GB, etc.) with support for both 1000 and 1024 base calculations.`,
+      },
     ],
   },
 ]);
