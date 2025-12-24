@@ -17,6 +17,7 @@ import {
   Database,
   Image,
 } from 'lucide-react';
+import { PiPlaceholder } from 'react-icons/pi';
 import { TbBrandGolang, TbFileTypeJsx, TbNumber64Small, TbReplace } from 'react-icons/tb';
 import { LuFileJson2 } from 'react-icons/lu';
 import {
@@ -548,6 +549,22 @@ export const NAVIGATION = new NavigationManager([
             icon: <Database />,
           },
         ],
+      },
+    ],
+  },
+
+  {
+    label: 'Image Tools',
+    // eslint-disable-next-line jsx-a11y/alt-text
+    icon: <Image />,
+    items: [
+      {
+        label: 'Placeholder Image Generator',
+        path: '/image-tools/placeholder-image-generator',
+        tags: ['Dummy Image', 'Mock Image'],
+        icon: <PiPlaceholder />,
+        summary:
+          'Generate custom placeholder images with specific dimensions, colors, and text directly in the browser.',
       },
     ],
   },
