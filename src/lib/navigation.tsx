@@ -17,7 +17,7 @@ import {
   Database,
   Image,
 } from 'lucide-react';
-import { PiPlaceholder } from 'react-icons/pi';
+import { PiPlaceholder, PiImagesSquareBold } from 'react-icons/pi';
 import { TbBrandGolang, TbFileTypeJsx, TbNumber64Small, TbReplace } from 'react-icons/tb';
 import { LuFileJson2, LuImageDown } from 'react-icons/lu';
 import {
@@ -573,6 +573,14 @@ export const NAVIGATION = new NavigationManager([
         icon: <LuImageDown />,
         summary:
           'Reduce image file sizes (PNG, JPEG, WebP) without significant loss of quality. Optimize images for faster loading web pages and reduced storage.',
+        sourceUrl: 'https://www.npmjs.com/package/compressorjs',
+      },
+      {
+        label: 'Image Converter',
+        path: '/image-tools/image-converter',
+        tags: ['Convert WebP to JPEG', 'Convert PNG to WebP', 'Image Format Converter'],
+        icon: <PiImagesSquareBold />,
+        summary: 'Convert images between various formats like WebP, JPEG, PNG, and more.',
         sourceUrl: 'https://www.npmjs.com/package/compressorjs',
       },
     ],
