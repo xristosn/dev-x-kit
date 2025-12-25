@@ -152,7 +152,7 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ triggerProps, forceO
               key={r.path || r.label}
               asChild
               variant="ghost"
-              className="justify-start flex-wrap h-auto whitespace-normal"
+              className="justify-start items-start flex-col flex-wrap h-auto whitespace-normal"
               onClick={() => setOpen(false)}
             >
               <Link
@@ -167,9 +167,11 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ triggerProps, forceO
                   }
                 }}
               >
-                {r.icon}
+                <span className="flex gap-2 items-center">
+                  {r.icon}
 
-                <span>{r.fullName || r.label}</span>
+                  <span>{r.fullName || r.label}</span>
+                </span>
 
                 {r.summary && <span className="text-muted-foreground/70 text-xs">{r.summary}</span>}
               </Link>
