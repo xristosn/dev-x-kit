@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { PiPlaceholder } from 'react-icons/pi';
 import { TbBrandGolang, TbFileTypeJsx, TbNumber64Small, TbReplace } from 'react-icons/tb';
-import { LuFileJson2 } from 'react-icons/lu';
+import { LuFileJson2, LuImageDown } from 'react-icons/lu';
 import {
   SiElixir,
   SiGooglebigquery,
@@ -565,6 +565,15 @@ export const NAVIGATION = new NavigationManager([
         icon: <PiPlaceholder />,
         summary:
           'Generate custom placeholder images with specific dimensions, colors, and text directly in the browser.',
+      },
+      {
+        label: 'Image Compressor',
+        path: '/image-tools/image-compressor',
+        tags: ['Image Optimizer', 'Compress PNG', 'Compress JPEG', 'Compress WebP'],
+        icon: <LuImageDown />,
+        summary:
+          'Reduce image file sizes (PNG, JPEG, WebP) without significant loss of quality. Optimize images for faster loading web pages and reduced storage.',
+        sourceUrl: 'https://www.npmjs.com/package/compressorjs',
       },
     ],
   },
