@@ -87,7 +87,7 @@ export default function PlaceholderImageGenerator() {
       <div className="bg-card shadow-md rounded-xl p-4 flex flex-col gap-4 h-full">
         <h5 className="text-lg">Placeholder</h5>
 
-        <div className="h-full w-full flex items-center justify-center">
+        <div className="h-full w-full flex items-center justify-center alpha-grid">
           <ClientOnly>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
