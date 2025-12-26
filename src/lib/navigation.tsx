@@ -16,6 +16,7 @@ import {
   FileBraces,
   Database,
   Image,
+  Maximize,
 } from 'lucide-react';
 import { PiPlaceholder, PiImagesSquareBold } from 'react-icons/pi';
 import { TbBrandGolang, TbFileTypeJsx, TbNumber64Small, TbReplace } from 'react-icons/tb';
@@ -580,8 +581,16 @@ export const NAVIGATION = new NavigationManager([
         path: '/image-tools/image-converter',
         tags: ['Convert WebP to JPEG', 'Convert PNG to WebP', 'Image Format Converter'],
         icon: <PiImagesSquareBold />,
-        summary: 'Convert images between various formats like WebP, JPEG, PNG, and more.',
+        summary: 'Convert images between various formats like WebP, JPEG, PNG and more.',
         sourceUrl: 'https://www.npmjs.com/package/compressorjs',
+      },
+      {
+        label: 'Image Resizer',
+        path: '/image-tools/image-resizer',
+        tags: ['Resize Image', 'Scale Image', 'Change Dimensions'],
+        icon: <Maximize />,
+        summary:
+          'Resize images to specific dimensions or percentage scales.',
       },
     ],
   },
