@@ -16,6 +16,7 @@ import {
   FileBraces,
   Database,
   Image,
+  Crop,
   Maximize,
 } from 'lucide-react';
 import { PiPlaceholder, PiImagesSquareBold } from 'react-icons/pi';
@@ -591,6 +592,15 @@ export const NAVIGATION = new NavigationManager([
         icon: <Maximize />,
         summary:
           'Resize images to specific dimensions or percentage scales.',
+      },
+      {
+        label: 'Image Cropper',
+        path: '/image-tools/image-cropper',
+        tags: ['Crop Image', 'Aspect Ratio', 'Trim Image'],
+        icon: <Crop />,
+        summary:
+          'Crop images to specific aspect ratios or freeform dimensions.',
+        sourceUrl: 'https://www.npmjs.com/package/react-image-crop',
       },
     ],
   },
