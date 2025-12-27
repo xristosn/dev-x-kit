@@ -22,6 +22,7 @@ export interface ColorPopoverProps {
   id?: string;
   label?: string;
   disableAlpha?: boolean;
+  defaultMode?: ColorMode;
 }
 
 export const ColorPopover: React.FC<ColorPopoverProps> = ({
@@ -30,9 +31,10 @@ export const ColorPopover: React.FC<ColorPopoverProps> = ({
   id: triggerId,
   label,
   disableAlpha,
+  defaultMode,
 }) => {
   const id = useId();
-  const [colorMode, setColorMode] = useState<ColorMode>('hex');
+  const [colorMode, setColorMode] = useState<ColorMode>(defaultMode || 'hex');
   const [recentColors, setRecentColors] = useWebStorage('recent-colors', 'infer', [] as string[]);
   const [open, setOpen] = useState(false);
   const wasOpen = useRef(false);
@@ -121,7 +123,7 @@ export const ColorPopover: React.FC<ColorPopoverProps> = ({
                   <button
                     key={c}
                     type="button"
-                    className="size-5 rounded-xs cursor-pointer"
+                    className="size-5 rounded-xs cursor-pointer shadow-xs border"
                     style={{ backgroundColor: c }}
                     onClick={() => setValue(ColorService.convert('hex', c))}
                   />

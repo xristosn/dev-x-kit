@@ -20,7 +20,13 @@ import {
   Maximize,
 } from 'lucide-react';
 import { PiPlaceholder, PiImagesSquareBold } from 'react-icons/pi';
-import { TbBrandGolang, TbFileTypeJsx, TbNumber64Small, TbReplace } from 'react-icons/tb';
+import {
+  TbBackground,
+  TbBrandGolang,
+  TbFileTypeJsx,
+  TbNumber64Small,
+  TbReplace,
+} from 'react-icons/tb';
 import { LuFileJson2, LuImageDown } from 'react-icons/lu';
 import {
   SiElixir,
@@ -121,6 +127,14 @@ export const NAVIGATION = new NavigationManager([
         icon: <BsShadows />,
         summary:
           'Create layered, smooth CSS box-shadows with live preview, edit color, blur, opacity, distance and layers with Smooth Shadows accurate output.',
+      },
+      {
+        label: 'Background Pattern Generator',
+        path: '/css-tools/css-background-pattern-generator',
+        fullName: 'CSS Background Pattern Generator',
+        icon: <TbBackground />,
+        summary:
+          'Generate intricate and unique CSS background patterns with a live preview. Customize colors, shapes, and sizes to create stunning and lightweight designs for any web project.',
       },
     ],
   },
@@ -590,16 +604,14 @@ export const NAVIGATION = new NavigationManager([
         path: '/image-tools/image-resizer',
         tags: ['Resize Image', 'Scale Image', 'Change Dimensions'],
         icon: <Maximize />,
-        summary:
-          'Resize images to specific dimensions or percentage scales.',
+        summary: 'Resize images to specific dimensions or percentage scales.',
       },
       {
         label: 'Image Cropper',
         path: '/image-tools/image-cropper',
         tags: ['Crop Image', 'Aspect Ratio', 'Trim Image'],
         icon: <Crop />,
-        summary:
-          'Crop images to specific aspect ratios or freeform dimensions.',
+        summary: 'Crop images to specific aspect ratios or freeform dimensions.',
         sourceUrl: 'https://www.npmjs.com/package/react-image-crop',
       },
     ],
