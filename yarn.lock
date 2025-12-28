@@ -2882,6 +2882,11 @@ css-select@^5.1.0:
     domutils "^3.0.1"
     nth-check "^2.0.1"
 
+css-to-tailwind-translator@^1.2.8:
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/css-to-tailwind-translator/-/css-to-tailwind-translator-1.2.8.tgz#9c7ae7516cb25036e90574f72b2069a3e2475894"
+  integrity sha512-4hGXc4En6aVHlQdGZuSL9IS4rmLUJ3rKFnkx9u03/SW6jbEjgrV/l3u7cc36nv43zEu7NDGLpJgAsX4K/9HhrQ==
+
 css-tree@^2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/css-tree/-/css-tree-2.3.1.tgz#10264ce1e5442e8572fc82fbe490644ff54b5c20"

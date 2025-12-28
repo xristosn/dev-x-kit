@@ -53,6 +53,7 @@ import {
   SiSvg,
   SiSass,
   SiPhp,
+  SiTailwindcss,
 } from 'react-icons/si';
 import { NavigationManager } from './utils';
 import { BsShadows } from 'react-icons/bs';
@@ -370,6 +371,13 @@ export const NAVIGATION = new NavigationManager([
             summary:
               'Transform standard CSS files into the dynamic SCSS format, enabling the use of variables, nesting, and mixins.',
           },
+          {
+            label: 'to Tailwind V3',
+            fullName: 'Convert CSS to Tailwind V3',
+            path: '/convert/css/tailwind-v3',
+            icon: <SiTailwindcss />,
+            summary: `Converts standard CSS into Tailwind CSS classes, streamlining the migration to a utility-first framework and ensuring responsive, maintainable designs.`,
+          },
         ],
       },
       {
@@ -392,6 +400,14 @@ export const NAVIGATION = new NavigationManager([
             icon: <SiJavascript />,
             summary:
               'Translate dynamic SCSS variables and rules into usable JavaScript object structures for web applications.',
+          },
+          {
+            label: 'to Tailwind V3',
+            fullName: 'Convert SCSS to Tailwind V3',
+            path: '/convert/scss/tailwind-v3',
+            icon: <SiTailwindcss />,
+            summary:
+              'Converts SCSS into Tailwind CSS classes, facilitating a smooth transition to a utility-first framework and promoting responsive, maintainable designs.',
           },
         ],
       },
@@ -446,6 +462,13 @@ export const NAVIGATION = new NavigationManager([
             icon: <SiSass />,
             summary:
               'Translate JavaScript Style Sheets (JSS) into the flexible and powerful SCSS syntax for CSS pre-processing.',
+          },
+          {
+            label: 'to Tailwind V3',
+            fullName: 'Convert JSS to Tailwind V3',
+            path: '/convert/jss/tailwind-v3',
+            icon: <SiTailwindcss />,
+            summary: `Converts JavaScript Style Sheets (JSS) into the utility-first classes of Tailwind CSS, facilitating a modern and efficient styling workflow.`,
           },
         ],
       },

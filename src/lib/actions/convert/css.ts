@@ -8,6 +8,7 @@ import cssConverter from '@gecka/styleflux';
 import babelCssToJs from 'babel-plugin-css-to-js';
 // @ts-expect-error No types
 import { validate } from 'csstree-validator';
+import { CssToTailwindTranslator } from 'css-to-tailwind-translator';
 import { prettifyCode } from './prettify';
 import { safeAction } from '../safe-action';
 
@@ -55,5 +56,32 @@ export async function cssToScss(code: string) {
     validateInput(code);
 
     return prettifyCode(cssConverter.cssToScss(code) as string, undefined, 'scss');
+  });
+}
+
+export async function cssToTailwindV3(code: string, options: Record<string, unknown>) {
+  return safeAction(async () => {
+    validateInput(code);
+
+    const result = CssToTailwindTranslator(code, {
+      prefix: '',
+      useAllDefaultValues: true,
+      ...options,
+    });
+
+    if (result.code === 'SyntaxError') {
+      console.log(result);
+      throw new SyntaxError('');
+    }
+
+    const resultCode = result.data
+      .map((item) =>
+        [!options.rawOutput && `<!-- ${item.selectorName} -->`, item.resultVal]
+          .filter(Boolean)
+          .join('\n')
+      )
+      .join('\n\n');
+
+    return resultCode;
   });
 }

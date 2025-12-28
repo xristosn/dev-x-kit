@@ -8,7 +8,7 @@ import jssDefaultPreset from 'jss-preset-default';
 import type { Options as DefaultUnitOptions } from 'jss-plugin-default-unit';
 import { parseAsync } from '@babel/core';
 import { prettifyCode } from './prettify';
-import { cssToScss } from './css';
+import { cssToScss, cssToTailwindV3 } from './css';
 import { safeAction } from '../safe-action';
 import { ActionError } from '@/types/action-error';
 
@@ -18,7 +18,11 @@ async function validateInput(input: string) {
       sourceType: 'module',
     });
   } catch (err) {
-    throw new Error(`Input is not valid JSS. ${(err as Error)?.message || err}`, { cause: err });
+    try {
+      await parseAsync(`const __root = { ${input} }`, { sourceType: 'module' });
+    } catch {
+      throw new Error(`Input is not valid JSS. ${(err as Error)?.message || err}`, { cause: err });
+    }
   }
 }
 
@@ -38,6 +42,15 @@ async function runInSandbox(input: string) {
     const scopeVariables = result.copy();
 
     return scopeVariables;
+  } catch (err) {
+    try {
+      const wrappedCode = `const __root = { ${input} }; scopeVariables = [{ ROOT: __root }];`;
+      await context.eval(wrappedCode);
+      const result = await global.get('scopeVariables');
+      return result.copy();
+    } catch {
+      throw err;
+    }
   } finally {
     isolate.dispose();
   }
@@ -106,6 +119,11 @@ function jssShorthandPlugin(): Plugin {
   };
 }
 
+function extractRawOutput(code: string) {
+  const match = code.match(/^[^{]+\{\s*([\s\S]*)\s*\}\s*$/);
+  return match ? match[1].trim() : code;
+}
+
 export async function jssToCss(input: string, options: Record<string, unknown>) {
   return safeAction(async () => {
     await validateInput(input);
@@ -161,7 +179,13 @@ export async function jssToCss(input: string, options: Record<string, unknown>) 
       code += styles.toString() + '\n\n';
     });
 
-    return prettifyCode(code, undefined, 'css');
+    let css = code;
+
+    if (options.rawOutput) {
+      css = extractRawOutput(css);
+    }
+
+    return prettifyCode(css, undefined, 'css');
   });
 }
 
@@ -169,12 +193,32 @@ export async function jssToScss(input: string, options: Record<string, unknown>)
   return safeAction(async () => {
     await validateInput(input);
 
-    const css = await jssToCss(input, options);
+    const css = await jssToCss(input, { ...options, rawOutput: false });
 
     if ((css as ActionError)?.error) {
       throw new Error((css as ActionError).message);
     }
 
-    return cssToScss(css as string);
+    const scss = await cssToScss(css as string);
+
+    if (typeof scss === 'string' && options.rawOutput) {
+      return extractRawOutput(scss);
+    }
+
+    return scss;
+  });
+}
+
+export async function jssToTailwindV3(input: string, options: Record<string, unknown>) {
+  return safeAction(async () => {
+    await validateInput(input);
+
+    const css = await jssToCss(input, { ...options, rawOutput: false });
+
+    if ((css as ActionError)?.error) {
+      throw new Error((css as ActionError).message);
+    }
+
+    return await cssToTailwindV3(css as string, options);
   });
 }
