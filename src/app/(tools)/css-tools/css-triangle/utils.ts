@@ -70,13 +70,3 @@ export function getTriangleStyle(
     ...(styles[direction as keyof typeof styles] || styles['Up']),
   };
 }
-
-export function getTriangleCss(...args: Parameters<typeof getTriangleStyle>) {
-  const styles = getTriangleStyle(...args);
-
-  return (
-    Object.entries(styles)
-      .reduce((prev, [key, val]) => [...prev, `${key}: ${val}`], [] as string[])
-      .join(';\n') + ';'
-  );
-}

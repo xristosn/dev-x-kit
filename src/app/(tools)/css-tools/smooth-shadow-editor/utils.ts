@@ -88,8 +88,3 @@ export function generateSmoothShadow({
 
   return shadows.join(',\n ');
 }
-
-export function getShadowCss(value: ShadowsStoreValue) {
-  const shadow = generateSmoothShadow(value);
-  return `box-shadow: ${shadow};`;
-}

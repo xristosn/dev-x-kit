@@ -1,7 +1,7 @@
 'use client';
 
 import { Container } from '@/components/container';
-import { DEFAULT_BACKGROUND_PATTERN_VALUE, PATTERNS, PatternType, getCssStyles } from './utils';
+import { DEFAULT_BACKGROUND_PATTERN_VALUE, PATTERNS, PatternType } from './utils';
 import { useWebStorage } from '@/hooks/use-web-storage';
 import { ColorService, IColor } from 'react-color-palette';
 import {
@@ -15,8 +15,8 @@ import { InputWrapper } from '@/components/input-wrapper';
 import { ColorPopover } from '@/components/color/color-popover';
 import { ClientOnly } from '@/components/client-only';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CopyIconButton } from '@/components/copy-button';
 import { CircularSlider } from '@/components/circular-slider';
+import { CodeDisplay, CodeDisplayPreset } from '@/components/code-display';
 
 export default function CssBackgroundPatternGenerator() {
   const [value, setValue] = useWebStorage(
@@ -31,8 +31,6 @@ export default function CssBackgroundPatternGenerator() {
     fgColor: ColorService.convert('hex', value.fgColor),
     bgColor: ColorService.convert('hex', value.bgColor),
   });
-
-  const css = getCssStyles(styles!);
 
   return (
     <Container>
@@ -145,12 +143,14 @@ export default function CssBackgroundPatternGenerator() {
           </div>
         </div>
 
-        <ClientOnly fallback={<Skeleton className="w-full h-40" />}>
-          <div className="relative rounded-xl border bg-sidebar text-sidebar-foreground p-4 font-mono text-sm overflow-x-auto min-h-40 pr-12">
-            <CopyIconButton className="absolute top-2 right-2" variant="outline" value={css} />
-            <pre className="whitespace-pre-wrap">{css}</pre>
-          </div>
-        </ClientOnly>
+        <CodeDisplay
+          code={`const styles = ${JSON.stringify(styles, null, 2)};`}
+          outputs={[
+            CodeDisplayPreset.JssToCss,
+            CodeDisplayPreset.JssToTailwindV3,
+            CodeDisplayPreset.Jss,
+          ]}
+        />
       </div>
     </Container>
   );

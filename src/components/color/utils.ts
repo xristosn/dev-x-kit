@@ -142,13 +142,6 @@ export function getGradientColor(value: GradientValue): string {
   return `${type}(${angl}, ${css})`;
 }
 
-export function getGradientCss(value: GradientValue): string {
-  return [
-    `background: ${value.colorStops[0].color}`,
-    `background-image: ${getGradientColor(value)}`,
-  ].join(';\n');
-}
-
 export type CssGradientImageFormat = 'png' | 'jpeg' | 'webp';
 
 export function cssGradientToImage(

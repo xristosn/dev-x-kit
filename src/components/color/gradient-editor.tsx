@@ -9,17 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { GradientStop, GradientValue } from '@/types/gradient';
-import { Copy, CopyCheck, Delete } from 'lucide-react';
+import { Delete } from 'lucide-react';
 import { useState } from 'react';
 import { ColorService, ColorPicker } from 'react-color-palette';
 import 'react-color-palette/css';
 import { v4 as uuid } from 'uuid';
 import { GradientPreview } from './gradient-preview';
 import { GradientSlider } from './gradient-slider';
-import { CssGradientImageFormat, cssGradientToImage, getGradientCss, sortStops } from './utils';
-import { CopyButton } from '@/components/copy-button';
+import { CssGradientImageFormat, cssGradientToImage, getGradientColor, sortStops } from './utils';
 import { Label } from '@radix-ui/react-label';
 import { GRADIENT_PRESETS } from '@/lib/constants';
+import { CodeDisplay, CodeDisplayPreset } from '../code-display';
 
 export interface GradientEditorProps {
   value: GradientValue;
@@ -37,7 +37,6 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
   const [height, setHeight] = useState(150);
 
   const currentStop = value.colorStops.find((s) => s.id === currentStopId) || value.colorStops[0];
-  const css = getGradientCss(value);
 
   const onStopChange = <StopProp extends keyof GradientStop>(
     prop: StopProp,
@@ -244,66 +243,73 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
       </div>
 
       {output && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-card shadow-sm rounded-xl p-4">
-          <div className="flex flex-col gap-2">
-            <h4 className="text-lg">CSS:</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <CodeDisplay
+            code={`const styles = ${JSON.stringify(
+              {
+                background: value.colorStops[0].color,
+                backgroundImage: getGradientColor(value),
+              },
+              null,
+              2
+            )};`}
+            outputs={[
+              CodeDisplayPreset.JssToCss,
+              CodeDisplayPreset.JssToTailwindV3,
+              CodeDisplayPreset.Jss,
+            ]}
+            codeWrapperClassName='h-30'
+          />
 
-            <ClientOnly>
-              <code className="p-2 pr-8 whitespace-pre-wrap relative bg-muted rounded-md h-full">
-                {css}
+          <div className="bg-card shadow-sm rounded-xl p-4">
+            <div className="flex flex-col gap-2">
+              <h4 className="text-lg">Extract:</h4>
 
-                <CopyButton
-                  value={css}
+              <div className="flex gap-4">
+                <div className="grid w-full items-center gap-2">
+                  <Label htmlFor="gradient-width">Width (px)</Label>
+                  <Input
+                    id="gradient-width"
+                    type="number"
+                    min={1}
+                    max={4000}
+                    value={width.toString()}
+                    onChange={(e) => setWidth(Number(e.target.value))}
+                  />
+                </div>
+
+                <div className="grid w-full items-center gap-2">
+                  <Label htmlFor="gradient-height">Height (px)</Label>
+                  <Input
+                    id="gradient-height"
+                    type="number"
+                    min={1}
+                    max={4000}
+                    value={height.toString()}
+                    onChange={(e) => setHeight(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 w-full items-stretch justify-stretch">
+                <Button variant="outline" className="flex-1" onClick={() => onDownloadImage('png')}>
+                  to .png
+                </Button>
+                <Button
                   variant="outline"
-                  size="icon-sm"
-                  className="absolute top-2 right-2"
-                  copiedProps={{ children: <CopyCheck /> }}
+                  className="flex-1"
+                  onClick={() => onDownloadImage('jpeg')}
                 >
-                  <Copy />
-                </CopyButton>
-              </code>
-            </ClientOnly>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <h4 className="text-lg">Extract:</h4>
-
-            <div className="flex gap-4">
-              <div className="grid w-full items-center gap-2">
-                <Label htmlFor="gradient-width">Width (px)</Label>
-                <Input
-                  id="gradient-width"
-                  type="number"
-                  min={1}
-                  max={4000}
-                  value={width.toString()}
-                  onChange={(e) => setWidth(Number(e.target.value))}
-                />
+                  to .jpeg
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => onDownloadImage('webp')}
+                >
+                  to .webp
+                </Button>
               </div>
-
-              <div className="grid w-full items-center gap-2">
-                <Label htmlFor="gradient-height">Height (px)</Label>
-                <Input
-                  id="gradient-height"
-                  type="number"
-                  min={1}
-                  max={4000}
-                  value={height.toString()}
-                  onChange={(e) => setHeight(Number(e.target.value))}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 w-full items-stretch justify-stretch">
-              <Button variant="outline" className="flex-1" onClick={() => onDownloadImage('png')}>
-                to .png
-              </Button>
-              <Button variant="outline" className="flex-1" onClick={() => onDownloadImage('jpeg')}>
-                to .jpeg
-              </Button>
-              <Button variant="outline" className="flex-1" onClick={() => onDownloadImage('webp')}>
-                to .webp
-              </Button>
             </div>
           </div>
         </div>

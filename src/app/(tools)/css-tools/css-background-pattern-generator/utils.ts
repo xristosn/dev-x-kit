@@ -347,7 +347,7 @@ export const PATTERNS: PatternConfig[] = [
         backgroundColor: c2,
         backgroundImage: `${l1}, ${l1}, ${l2}, ${l2}, conic-gradient(${c}, ${c1} 0), conic-gradient(${c}, ${c3} 0), linear-gradient(90deg, ${c3} 38%, ${c1} 0 50%, ${c3} 0 62%, ${c1} 0)`,
         backgroundPosition: `0 0, ${size / 2}px ${size}px, 0 0, ${size / 2}px ${size}px, ${size / 8}px 0, ${size / 2}px 0, 0 0`,
-        backgroundSize: `${size}px ${size * 2 / 3}px`,
+        backgroundSize: `${size}px ${(size * 2) / 3}px`,
       };
     },
   },
@@ -379,7 +379,7 @@ export const PATTERNS: PatternConfig[] = [
       return {
         backgroundColor: c2,
         backgroundImage: `${g1}, ${g1}, ${g2}, ${g2}, ${g3}, ${g3}, conic-gradient(at 87.5% 87.5%, ${c})`,
-        backgroundPosition: `${-size / 8}px ${size / 2}px, ${-3 * size / 8}px ${size / 4}px, ${3 * size / 8}px ${size / 4}px, ${-size / 8}px 0, 0 ${-size / 4}px, ${-size / 4}px 0, ${size / 8}px 0`,
+        backgroundPosition: `${-size / 8}px ${size / 2}px, ${(-3 * size) / 8}px ${size / 4}px, ${(3 * size) / 8}px ${size / 4}px, ${-size / 8}px 0, 0 ${-size / 4}px, ${-size / 4}px 0, ${size / 8}px 0`,
         backgroundSize: `${size}px ${size}px`,
       };
     },
@@ -435,12 +435,3 @@ export const PATTERNS: PatternConfig[] = [
     },
   },
 ];
-
-export function getCssStyles(styles: React.CSSProperties) {
-  let css = `background-color: ${styles.backgroundColor};\n`;
-  if (styles.backgroundImage) css += `background-image: ${styles.backgroundImage};\n`;
-  if (styles.backgroundPosition) css += `background-position: ${styles.backgroundPosition};\n`;
-  if (styles.backgroundSize) css += `background-size: ${styles.backgroundSize};\n`;
-  if (styles.backgroundBlendMode) css += `background-blend-mode: ${styles.backgroundBlendMode};\n`;
-  return css.trim();
-}
