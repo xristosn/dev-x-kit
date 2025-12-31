@@ -11,9 +11,10 @@ export interface RGBInputProps {
   value: IColor;
   setValue: (color: IColor) => void;
   noLabel?: boolean;
+  disableAlpha?: boolean;
 }
 
-export const HSVInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel }) => {
+export const HSVInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, disableAlpha }) => {
   const [color, setColor] = useState(value.hsv);
   const [error, setError] = useState(false);
 
@@ -78,16 +79,18 @@ export const HSVInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel }) 
           value={Math.round(color.v).toString()}
           onChange={(e) => onColorChange('v', e.target.value)}
         />
-        <Input
-          type="number"
-          min={0}
-          max={1}
-          step={0.1}
-          pattern="^(0(\.[0-9]{1,2})?|1(\.0{1,2})?)$"
-          placeholder="Alpha"
-          value={Number(color.a.toFixed(2)).toString()}
-          onChange={(e) => onColorChange('a', e.target.value)}
-        />
+        {!disableAlpha && (
+          <Input
+            type="number"
+            min={0}
+            max={1}
+            step={0.1}
+            pattern="^(0(\.[0-9]{1,2})?|1(\.0{1,2})?)$"
+            placeholder="Alpha"
+            value={Number(color.a.toFixed(2)).toString()}
+            onChange={(e) => onColorChange('a', e.target.value)}
+          />
+        )}
       </div>
     </ColorInputWrapper>
   );

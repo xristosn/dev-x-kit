@@ -18,6 +18,7 @@ import {
   Image,
   Crop,
   Maximize,
+  SwatchBook,
 } from 'lucide-react';
 import { PiPlaceholder, PiImagesSquareBold } from 'react-icons/pi';
 import {
@@ -95,6 +96,14 @@ export const NAVIGATION = new NavigationManager([
         sourceUrl: 'https://www.npmjs.com/package/tinycolor2',
         summary:
           'Verifies foreground/background color combinations meet WCAG accessibility standards (AA/AAA). Ensures text legibility for all users.',
+      },
+      {
+        label: 'Palette Generator',
+        fullName: 'Color Palette Generator',
+        path: '/color-tools/palette-generator',
+        icon: <SwatchBook />,
+        tags: ['Color Palette', 'Chakra UI v3', 'CSS Palette'],
+        summary: `Create, preview, and export color palettes for light & dark modes to CSS or Chakra UI.`,
       },
     ],
   },

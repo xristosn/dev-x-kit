@@ -107,9 +107,9 @@ export const ColorPopover: React.FC<ColorPopoverProps> = ({
               {colorMode === 'hex' ? (
                 <HexInput value={value} setValue={setValue} noLabel />
               ) : colorMode === 'rgb' ? (
-                <RGBInput value={value} setValue={setValue} noLabel />
+                <RGBInput value={value} setValue={setValue} noLabel disableAlpha={disableAlpha} />
               ) : (
-                <HSVInput value={value} setValue={setValue} noLabel />
+                <HSVInput value={value} setValue={setValue} noLabel disableAlpha={disableAlpha} />
               )}
             </div>
           </div>
