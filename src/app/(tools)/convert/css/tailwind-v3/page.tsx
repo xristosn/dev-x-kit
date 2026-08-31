@@ -1,21 +1,6 @@
 import { CodeSplitView } from '@/components/code-split-view/code-split-view';
 import { cssToTailwindV3 } from '@/lib/actions/convert/css';
-import { createConvertOptions } from '@/lib/create-convert-options';
-
-export const CSS_TO_TAILWIND_V3_OPTIONS = createConvertOptions([
-  {
-    label: 'Use Tailwind default values',
-    name: 'useAllDefaultValues',
-    type: 'switch',
-    defaultValue: true,
-  },
-  {
-    label: 'Class Prefix',
-    name: 'prefix',
-    type: 'text',
-    defaultValue: '',
-  },
-]);
+import { CSS_TO_TAILWIND_V3_OPTIONS } from './options';
 
 export default function CssToTailwindV3() {
   return (
@@ -23,19 +8,32 @@ export default function CssToTailwindV3() {
       input={{
         label: 'CSS',
         language: 'css',
-        defaultValue: `body {
-  text-align: center;
-  background-color: #111;
+        defaultValue: `.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
 }
 
-body header {
-  font-size: 26px;
-  margin-bottom: 26px;
-  background-color: #111;
+.button {
+  padding: 8px 16px;
+  background-color: #0066cc;
+  color: white;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
 }`,
       }}
       output={{
-        label: 'HTML',
+        label: 'Tailwind CSS',
         language: 'html',
         sourceUrl: 'https://www.npmjs.com/package/css-to-tailwind-translator',
       }}

@@ -1,6 +1,6 @@
 import { CodeSplitView } from '@/components/code-split-view/code-split-view';
 import { scssToTailwindV3 } from '@/lib/actions/convert/scss';
-import { CSS_TO_TAILWIND_V3_OPTIONS } from '../../css/tailwind-v3/page';
+import { CSS_TO_TAILWIND_V3_OPTIONS } from '../../css/tailwind-v3/options';
 
 export default function ScssToTailwindV3() {
   return (

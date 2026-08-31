@@ -1,5 +1,5 @@
 import { CodeSplitView } from '@/components/code-split-view/code-split-view';
-import { CSS_TO_TAILWIND_V3_OPTIONS } from '../../css/tailwind-v3/page';
+import { CSS_TO_TAILWIND_V3_OPTIONS } from '../../css/tailwind-v3/options';
 import { jssToTailwindV3 } from '@/lib/actions/convert/jss';
 
 export default function JssToTailwindV3() {
