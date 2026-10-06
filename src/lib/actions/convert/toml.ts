@@ -1,10 +1,11 @@
 'use server';
 
-import 'server-only';
 import { parse as parseToml } from '@iarna/toml';
-import { prettifyCode } from './prettify';
-import { jsonToJsDoc, jsonToJsonSchema, jsonToTypescript, jsonToYaml } from './json';
+import 'server-only';
 import { safeAction } from '../safe-action';
+import { isActionError } from '@/lib/action-error';
+import { jsonToJsDoc, jsonToJsonSchema, jsonToTypescript, jsonToYaml } from './json';
+import { prettifyCode } from './prettify';
 
 export async function tomlToJson(input: string) {
   return safeAction(async () => {
@@ -17,9 +18,7 @@ export async function tomlToJsonSchema(input: string, options: Record<string, un
   return safeAction(async () => {
     const json = await tomlToJson(input);
 
-    if (typeof json === 'object' && 'error' in json) {
-      throw new Error(json.message);
-    }
+    if (isActionError(json)) return json;
 
     return jsonToJsonSchema(json, options);
   });
@@ -29,9 +28,7 @@ export async function tomlToYaml(input: string) {
   return safeAction(async () => {
     const json = await tomlToJson(input);
 
-    if (typeof json === 'object' && 'error' in json) {
-      throw new Error(json.message);
-    }
+    if (isActionError(json)) return json;
 
     return jsonToYaml(json);
   });
@@ -41,9 +38,7 @@ export async function tomlToTypescript(input: string, options: Record<string, un
   return safeAction(async () => {
     const json = await tomlToJson(input);
 
-    if (typeof json === 'object' && 'error' in json) {
-      throw new Error(json.message);
-    }
+    if (isActionError(json)) return json;
 
     return jsonToTypescript(json, options);
   });
@@ -53,9 +48,7 @@ export async function tomlToJsDoc(input: string, options: Record<string, unknown
   return safeAction(async () => {
     const json = await tomlToJson(input);
 
-    if (typeof json === 'object' && 'error' in json) {
-      throw new Error(json.message);
-    }
+    if (isActionError(json)) return json;
 
     return jsonToJsDoc(json, options);
   });

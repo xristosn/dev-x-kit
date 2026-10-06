@@ -1,8 +1,11 @@
 'use client';
 
-import * as cssConvert from 'css-unit-converter-js';
-import { Container } from '@/components/container';
-import { useWebStorage } from '@/hooks/use-web-storage';
+import { ClientOnly } from '@/components/client-only';
+import type { FaqItem } from '@/components/faq-section';
+import { FaqSection } from '@/components/faq-section';
+import { CopyButton } from '@/components/ui/copy-button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -10,11 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useWebStorage } from '@/hooks/use-web-storage';
+import * as cssConvert from 'css-unit-converter-js';
 import { useEffect, useState } from 'react';
-import { CopyButton } from '@/components/ui/copy-button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { ClientOnly } from '@/components/client-only';
 
 const CONFIG = {
   units: [
@@ -215,11 +216,11 @@ const CONFIG = {
   } as Record<string, Record<string, { func: string; context: string[] }>>,
 };
 
-interface StorageValue {
+type StorageValue = {
   unit: string;
   size: number;
   context: Record<string, number>;
-}
+};
 
 const DEFAULT_VALUE: StorageValue = {
   unit: 'px',
@@ -232,6 +233,24 @@ const DEFAULT_VALUE: StorageValue = {
     {} as Record<string, number>
   ),
 };
+
+const FAQS = [
+  {
+    title: 'Why do rem, em, vw, vh, and percentage conversions need context values?',
+    description:
+      'These units are relative to another value. rem uses the root font size, em uses the parent/element font size you enter, vw and vh use viewport dimensions, and % uses the base size you provide. Update those context values to match the CSS environment you are targeting.',
+  },
+  {
+    title: 'Does the converter read my browser viewport automatically?',
+    description:
+      'No. Enter the viewport width and height in the Conversion Context fields. The vw and vh results are calculated from those values, which is useful when converting for a different device or layout size.',
+  },
+  {
+    title: 'Why can the same percentage convert to different pixel values?',
+    description:
+      'A percentage has no single pixel equivalent without a reference size. Set “Base Size for Percentage” to the pixel value that represents 100% in your CSS, and the result will use that base.',
+  },
+] satisfies readonly FaqItem[];
 
 export default function CssUnitConverter() {
   const [value, setValue] = useWebStorage<StorageValue>(
@@ -266,6 +285,7 @@ export default function CssUnitConverter() {
 
         <Input
           id={`context-${key}`}
+          data-testid={`css-unit-converter-context-${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`}
           type="number"
           min={config.min}
           max={config.max}
@@ -290,17 +310,27 @@ export default function CssUnitConverter() {
   }, [value.unit, value.size, value.context]);
 
   return (
-    <Container className="gap-8">
+    <>
       <div className="flex flex-col sm:flex-row gap-4 items-center mx-auto">
         <h4 className="text-3xl">Convert</h4>
 
-        <Select value={value.unit} onValueChange={(v) => setValue((p) => ({ ...p, unit: v }))}>
-          <SelectTrigger className="w-80 text-xl h-20 min-h-12">
+        <Select
+          value={value.unit}
+          onValueChange={(v) => setValue((p) => ({ ...p, unit: v ?? p.unit }))}
+        >
+          <SelectTrigger
+            data-testid="css-unit-converter-unit-trigger"
+            className="w-80 text-xl h-20 min-h-12"
+          >
             <SelectValue placeholder="Unit" />
           </SelectTrigger>
           <SelectContent>
             {CONFIG.units.map((unit) => (
-              <SelectItem key={unit.key} value={unit.key}>
+              <SelectItem
+                key={unit.key}
+                value={unit.key}
+                data-testid={`css-unit-converter-unit-option-${unit.key === '%' ? 'percentage' : unit.key}`}
+              >
                 {unit.label}
               </SelectItem>
             ))}
@@ -310,13 +340,14 @@ export default function CssUnitConverter() {
 
       {currentUnit && (
         <ClientOnly fallback={<div className="h-full" />}>
-          <div className="flex flex-col gap-12 my-auto">
+          <div className="flex flex-col gap-12">
             <div className="flex flex-col gap-4">
               <Label htmlFor="size-input" className="text-lg">
                 {currentUnit.label}
               </Label>
               <Input
                 id="size-input"
+                data-testid="css-unit-converter-size-input"
                 type="number"
                 min={0}
                 value={value.size}
@@ -343,7 +374,12 @@ export default function CssUnitConverter() {
                       <CopyButton content={unitValue} />
                     </div>
 
-                    <p className="text-2xl text-center">{unitValue}</p>
+                    <p
+                      data-testid={`css-unit-converter-output-${targetUnitKey === '%' ? 'percentage' : targetUnitKey}`}
+                      className="text-2xl text-center"
+                    >
+                      {unitValue}
+                    </p>
                   </div>
                 );
               })}
@@ -360,7 +396,8 @@ export default function CssUnitConverter() {
           )}
         </ClientOnly>
       )}
-    </Container>
+      <FaqSection items={FAQS} />
+    </>
   );
 }
 

@@ -17,15 +17,15 @@ import { v4 as uuid } from 'uuid';
 import { GradientPreview } from './gradient-preview';
 import { GradientSlider } from './gradient-slider';
 import { CssGradientImageFormat, cssGradientToImage, getGradientColor, sortStops } from './utils';
-import { Label } from '@radix-ui/react-label';
 import { GRADIENT_PRESETS } from '@/lib/constants';
 import { CodeDisplay, CodeDisplayPreset } from '../code-display';
+import { Label } from '../ui/label';
 
-export interface GradientEditorProps {
+export type GradientEditorProps = {
   value: GradientValue;
   setValue: React.Dispatch<React.SetStateAction<GradientValue>>;
   output?: boolean;
-}
+};
 
 export const GradientEditor: React.FC<GradientEditorProps> = ({
   value,
@@ -88,24 +88,36 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
 
   return (
     <>
-      <GradientPreview value={value} className="min-h-20 md:min-h-40 lg:min-h-60 h-1/3 shadow-sm" />
+      <div data-testid="gradient-editor-preview">
+        <GradientPreview
+          value={value}
+          className="min-h-20 md:min-h-40 lg:min-h-60 h-1/3 shadow-sm"
+        />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 bg-card shadow-sm rounded-xl p-4">
         <div className="flex flex-col gap-2">
           <h4 className="text-lg">Slider:</h4>
 
-          <ClientOnly>
-            <GradientSlider value={value} setValue={setValue} setCurrentStopId={setCurrentStopId} />
-          </ClientOnly>
+          <div data-testid="gradient-editor-slider">
+            <ClientOnly>
+              <GradientSlider
+                value={value}
+                setValue={setValue}
+                setCurrentStopId={setCurrentStopId}
+              />
+            </ClientOnly>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <h4 className="text-lg">Presets:</h4>
 
-          <div className="flex flex-wrap gap-4">
+          <div data-testid="gradient-editor-presets" className="flex flex-wrap gap-4">
             {GRADIENT_PRESETS.map((preset, idx) => (
               <GradientPreview
                 key={idx}
+                data-testid={`gradient-editor-preset-${idx}`}
                 value={preset}
                 className="size-8 rounded-md cursor-pointer"
                 tabIndex={0}
@@ -126,6 +138,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
           <div className="flex items-center justify-center">
             <ClientOnly>
               <Button
+                data-testid="gradient-editor-type-linear"
                 variant={value.type ? 'outline' : 'default'}
                 className="rounded-r-none border"
                 onClick={() => setValue((v) => ({ ...v, type: 'linear' }))}
@@ -134,6 +147,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
               </Button>
 
               <Button
+                data-testid="gradient-editor-type-radial"
                 variant={value.type ? 'default' : 'outline'}
                 className="rounded-l-none"
                 onClick={() => setValue((v) => ({ ...v, type: 'radial' }))}
@@ -161,9 +175,13 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
           <h4 className="text-lg">Stops:</h4>
 
           <ClientOnly>
-            <div className="flex flex-col gap-4 max-h-44 overflow-auto -m-2 p-2">
+            <div
+              data-testid="gradient-editor-stops"
+              className="flex flex-col gap-4 max-h-44 overflow-auto -m-2 p-2"
+            >
               {value.colorStops.map((stop) => (
                 <div
+                  data-testid={`gradient-editor-stop-${stop.id}`}
                   key={stop.id}
                   className="flex gap-2"
                   onClick={() => setCurrentStopId(stop.id)}
@@ -171,6 +189,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
                   onChange={() => setCurrentStopId(stop.id)}
                 >
                   <div
+                    data-testid="gradient-editor-stop-swatch"
                     className={cn(
                       'size-8 min-w-8 rounded-sm border-2 border-background outline-2',
                       stop.id === currentStopId ? 'outline-foreground' : 'cursor-pointer'
@@ -178,13 +197,16 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
                     style={{ backgroundColor: stop.color }}
                   />
 
-                  <HexInput
-                    noLabel
-                    value={ColorService.convert('hex', stop.color)}
-                    setValue={(c) => onStopChange('color', c.hex)}
-                  />
+                  <div data-testid="gradient-editor-stop-hex-input">
+                    <HexInput
+                      noLabel
+                      value={ColorService.convert('hex', stop.color)}
+                      setValue={(c) => onStopChange('color', c.hex)}
+                    />
+                  </div>
 
                   <Input
+                    data-testid="gradient-editor-stop-offset"
                     type={stop.id === currentStopId ? 'number' : 'text'}
                     min={0}
                     max={100}
@@ -194,6 +216,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
                   />
 
                   <Button
+                    data-testid="gradient-editor-stop-delete"
                     size="icon"
                     variant="outline"
                     onClick={(e) => {
@@ -208,7 +231,12 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
               ))}
             </div>
 
-            <Button variant="outline" size="sm" onClick={addStop}>
+            <Button
+              data-testid="gradient-editor-add-stop"
+              variant="outline"
+              size="sm"
+              onClick={addStop}
+            >
               Add stop
             </Button>
           </ClientOnly>
@@ -258,7 +286,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
               CodeDisplayPreset.JssToTailwindV3,
               CodeDisplayPreset.Jss,
             ]}
-            codeWrapperClassName='h-30'
+            codeWrapperClassName="h-30"
           />
 
           <div className="bg-card shadow-sm rounded-xl p-4">
@@ -269,6 +297,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
                 <div className="grid w-full items-center gap-2">
                   <Label htmlFor="gradient-width">Width (px)</Label>
                   <Input
+                    data-testid="gradient-editor-width"
                     id="gradient-width"
                     type="number"
                     min={1}
@@ -281,6 +310,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
                 <div className="grid w-full items-center gap-2">
                   <Label htmlFor="gradient-height">Height (px)</Label>
                   <Input
+                    data-testid="gradient-editor-height"
                     id="gradient-height"
                     type="number"
                     min={1}
@@ -292,10 +322,16 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
               </div>
 
               <div className="flex gap-2 w-full items-stretch justify-stretch">
-                <Button variant="outline" className="flex-1" onClick={() => onDownloadImage('png')}>
+                <Button
+                  data-testid="gradient-editor-download-png"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => onDownloadImage('png')}
+                >
                   to .png
                 </Button>
                 <Button
+                  data-testid="gradient-editor-download-jpeg"
                   variant="outline"
                   className="flex-1"
                   onClick={() => onDownloadImage('jpeg')}
@@ -303,6 +339,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
                   to .jpeg
                 </Button>
                 <Button
+                  data-testid="gradient-editor-download-webp"
                   variant="outline"
                   className="flex-1"
                   onClick={() => onDownloadImage('webp')}

@@ -4,7 +4,7 @@
 
 # Dev X Kit 🛠️
 
-**Dev X Kit** is a toolbox for web developers. Built for speed, precision, and privacy, it provides a massive collection of conversion, formatting, and generation tools all in one place. No sign-ups, no limits, and no tracking.
+**Dev X Kit** is a toolbox for developers. Built for speed, precision, and privacy, it provides a massive collection of conversion, formatting, and generation tools all in one place. No sign-ups, no limits, and no tracking.
 
 **Try it out [here](https://dev-x-kit.vercel.app/)**
 
@@ -94,3 +94,10 @@ Developer tools shouldn't be data traps.
 ## 📄 License
 
 [MIT](https://github.com/xristosn/dev-x-kit/blob/main/LICENSE)
+
+### Name, Logos, and Assets (All Rights Reserved)
+
+The MIT License applies **only** to the underlying source code. It does **not** grant permission to use:
+
+- The name **"Dev X Kit"** or any confusingly similar names.
+- Logos, branding, icons, audio, or custom design graphics located in the project files.

@@ -1,28 +1,46 @@
 'use client';
 
-import { Container } from '@/components/container';
-import { FileUpload } from '@/components/ui/file-upload';
-import { cn } from '@/lib/utils';
-import { useState } from 'react';
-import Compressor from 'compressorjs';
-import { Spinner } from '@/components/ui/spinner';
+import { ColorPopover } from '@/components/color/color-popover';
+import { FaqSection, type FaqItem } from '@/components/faq-section';
+import { InputWrapper } from '@/components/input-wrapper';
 import { Button } from '@/components/ui/button';
-import prettyBytes from 'pretty-bytes';
+import { FileUpload } from '@/components/ui/file-upload';
+import { Spinner } from '@/components/ui/spinner';
+import { useWebStorage } from '@/hooks/use-web-storage';
+import { cn } from '@/lib/utils';
+import Compressor from 'compressorjs';
 import JSZip from 'jszip';
 import { Check } from 'lucide-react';
-import { useWebStorage } from '@/hooks/use-web-storage';
+import prettyBytes from 'pretty-bytes';
+import { useState } from 'react';
+import { ColorService, IColor } from 'react-color-palette';
 import {
-  DEFAULT_IMAGE_CONVERTER_STORE_VALUE,
   ConversionState,
   ConvertedFile,
+  DEFAULT_IMAGE_CONVERTER_STORE_VALUE,
   MAX_FILES,
   MIME_TYPE_LABELS,
-  SUPPORTED_MIME_TYPES,
   OPAQUE_MIME_TYPES,
-} from './utils';
-import { ColorPopover } from '@/components/color/color-popover';
-import { ColorService, IColor } from 'react-color-palette';
-import { InputWrapper } from '@/components/input-wrapper';
+  SUPPORTED_MIME_TYPES,
+} from './_lib/utils';
+
+const FAQS = [
+  {
+    title: 'Which output formats can I convert to?',
+    description:
+      'Choose JPEG, PNG, WebP, or BMP. The tool accepts image files, but conversion depends on whether your browser can decode the source image. You can convert up to 15 files per batch, with a 15 MiB limit per file.',
+  },
+  {
+    title: 'What happens to transparent areas in JPEG or BMP?',
+    description:
+      'JPEG and BMP do not support transparency, so the tool fills transparent areas with the selected opaque color. White is used by default. PNG and WebP output can retain transparent areas.',
+  },
+  {
+    title: 'Why does a converted file keep its original extension?',
+    description:
+      'Downloads use the source filename, including its extension, even when you select another output format. Check the format you chose before using the downloaded file. If the source already matches the selected format, it is passed through without conversion.',
+  },
+] satisfies readonly FaqItem[];
 
 export default function ImageConverter() {
   const [value, setValue] = useWebStorage(
@@ -30,7 +48,7 @@ export default function ImageConverter() {
     'infer',
     DEFAULT_IMAGE_CONVERTER_STORE_VALUE
   );
-  const [state, setState] = useState(ConversionState.None);
+  const [state, setState] = useState<ConversionState>(ConversionState.None);
   const [files, setFiles] = useState<File[]>([]);
   const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([]);
   const [activeFile, setActiveFile] = useState('');
@@ -50,39 +68,46 @@ export default function ImageConverter() {
             url: URL.createObjectURL(file),
           },
         ]);
-      } else
-        await new Promise((resolve, reject) => {
-          new Compressor(file, {
-            quality: 1,
-            mimeType: value.to,
-            retainExif: true,
-            
-            beforeDraw(context, canvas) {
-              if (OPAQUE_MIME_TYPES.includes(value.to)) {
-                context.fillStyle = value.opaqueColor;
-                context.fillRect(0, 0, canvas.width, canvas.height);
-              }
-            },
+      } else {
+        try {
+          await new Promise((resolve, reject) => {
+            new Compressor(file, {
+              quality: 1,
+              mimeType: value.to,
+              retainExif: true,
 
-            success(outputFile) {
-              setConvertedFiles((p) => [
-                ...p,
-                {
-                  name: file.name,
-                  size: outputFile.size,
-                  url: URL.createObjectURL(outputFile),
-                },
-              ]);
+              beforeDraw(context, canvas) {
+                if (OPAQUE_MIME_TYPES.includes(value.to)) {
+                  context.fillStyle = value.opaqueColor;
+                  context.fillRect(0, 0, canvas.width, canvas.height);
+                }
+              },
 
-              resolve(outputFile);
-            },
-            error(error) {
-              console.log(error.message);
-              setConvertedFiles((p) => [...p, { name: file.name, size: 0, error: error.message }]);
-              reject(error);
-            },
+              success(outputFile) {
+                setConvertedFiles((p) => [
+                  ...p,
+                  {
+                    name: file.name,
+                    size: outputFile.size,
+                    url: URL.createObjectURL(outputFile),
+                  },
+                ]);
+
+                resolve(outputFile);
+              },
+              error(error) {
+                setConvertedFiles((p) => [
+                  ...p,
+                  { name: file.name, size: 0, error: error.message },
+                ]);
+                reject(error);
+              },
+            });
           });
-        });
+        } catch {
+          // The error callback records the failed file so conversion can continue.
+        }
+      }
     }
 
     setActiveFile('');
@@ -118,7 +143,7 @@ export default function ImageConverter() {
   const totalConvertedSize = convertedFiles.reduce((acc, file) => acc + (file.size || 0), 0);
 
   return (
-    <Container>
+    <>
       {state === ConversionState.None && (
         <div
           className={cn(
@@ -127,24 +152,19 @@ export default function ImageConverter() {
           )}
         >
           <FileUpload
+            enableImageClipboard
+            showClipboardGuidance={!files.length}
+            dropZoneDescription={`Upload up to ${MAX_FILES} images`}
             accept={{ 'image/*': [] }}
             maxSize={15 * 1024 * 1024}
             maxFiles={MAX_FILES * 2}
             showFilesList={false}
             disabled={!!activeFile}
             onDropAccepted={(files) => setFiles(files.slice(0, MAX_FILES))}
-            containerClassName="my-auto"
             dropZoneClassName={cn(
-              'min-h-40',
-              state === ConversionState.None &&
-                !files.length &&
-                'h-[calc(75vh-var(--header-height)-(var(--spacing)*8))]'
+              state === ConversionState.None && !files.length && 'editor-height'
             )}
           />
-
-          <p className="text-xs text-center text-muted-foreground">
-            Upload up to {MAX_FILES} images
-          </p>
         </div>
       )}
 
@@ -157,6 +177,7 @@ export default function ImageConverter() {
               {SUPPORTED_MIME_TYPES.map((type) => (
                 <Button
                   key={type}
+                  data-testid={`image-converter-format-${MIME_TYPE_LABELS[type].toLowerCase()}`}
                   size="lg"
                   variant={value.to === type ? 'default' : 'outline'}
                   onClick={() => setValue((p) => ({ ...p, to: type }))}
@@ -167,22 +188,25 @@ export default function ImageConverter() {
             </div>
 
             {OPAQUE_MIME_TYPES.includes(value.to) && (
-              <InputWrapper
-                label="Opaque Color"
-                helperText="Choose a color to fill transparent areas when converting to an opaque format (e.g., PNG to JPEG)."
-              >
-                <ColorPopover
-                  value={ColorService.convert('hex', value.opaqueColor)}
-                  setValue={(c) => setValue((p) => ({ ...p, opaqueColor: (c as IColor).hex }))}
-                  disableAlpha
-                />
-              </InputWrapper>
+              <div data-testid="image-converter-opaque-color">
+                <InputWrapper
+                  label="Opaque Color"
+                  helperText="Choose a color to fill transparent areas when converting to an opaque format (e.g., PNG to JPEG)."
+                >
+                  <ColorPopover
+                    value={ColorService.convert('hex', value.opaqueColor)}
+                    setValue={(c) => setValue((p) => ({ ...p, opaqueColor: (c as IColor).hex }))}
+                    disableAlpha
+                  />
+                </InputWrapper>
+              </div>
             )}
           </div>
 
           <Button
             size="lg"
             className="text-xl font-bold h-12 w-full"
+            data-testid="image-converter-convert"
             variant="outline"
             onClick={convert}
           >
@@ -205,21 +229,35 @@ export default function ImageConverter() {
 
                 {!!convertedFiles.length && !activeFile && (
                   <div className="flex flex-col gap-2">
-                    <p className="text-lg flex gap-2 items-center">
+                    <p
+                      data-testid="image-converter-completion"
+                      className="text-lg flex gap-2 items-center"
+                    >
                       <Check className="text-green-500" /> Convertion to{' '}
                       {MIME_TYPE_LABELS[value.to]} Complete
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p
+                      data-testid="image-converter-original-size"
+                      className="text-sm text-muted-foreground"
+                    >
                       Original Size: {prettyBytes(totalOriginalSize)}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p
+                      data-testid="image-converter-converted-size"
+                      className="text-sm text-muted-foreground"
+                    >
                       Converted Size: {prettyBytes(totalConvertedSize)}
                     </p>
                   </div>
                 )}
               </div>
 
-              <Button size="lg" variant="outline" onClick={onDownloadAllClick}>
+              <Button
+                data-testid="image-converter-download-all"
+                size="lg"
+                variant="outline"
+                onClick={onDownloadAllClick}
+              >
                 Download all images
               </Button>
             </div>
@@ -242,15 +280,26 @@ export default function ImageConverter() {
                       ) : converted?.error ? (
                         <div className="flex flex-col gap-2">
                           <p className="text-red-300">An error occured</p>
-                          <p className="text-xs text-muted-foreground">{converted.error}</p>
+                          <p
+                            data-testid={`image-converter-file-error-${file.name}`}
+                            className="text-xs text-muted-foreground"
+                          >
+                            {converted.error}
+                          </p>
                         </div>
                       ) : (
                         <div className="flex flex-col gap-2 text-center">
-                          <Button asChild variant="outline" disabled={isActive || !converted}>
-                            <a href={converted?.url} download={file.name}>
-                              Download
-                            </a>
-                          </Button>
+                          <Button
+                            data-testid={`image-converter-file-download-${file.name}`}
+                            variant="outline"
+                            disabled={isActive || !converted}
+                            nativeButton={false}
+                            render={
+                              <a href={converted?.url} download={file.name}>
+                                Download
+                              </a>
+                            }
+                          />
 
                           {converted?.size && (
                             <p className="text-sm text-muted-foreground">
@@ -266,11 +315,19 @@ export default function ImageConverter() {
             </div>
           </div>
 
-          <Button className="mx-auto mt-4" size="lg" variant="outline" onClick={onStartOver}>
+          <Button
+            data-testid="image-converter-start-over"
+            className="mx-auto mt-4"
+            size="lg"
+            variant="outline"
+            onClick={onStartOver}
+          >
             Start Over
           </Button>
         </>
       )}
-    </Container>
+
+      <FaqSection items={FAQS} />
+    </>
   );
 }

@@ -1,14 +1,10 @@
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
-import { Button } from '../ui/button';
-import Link from 'next/link';
-import { BsGithub } from 'react-icons/bs';
-import { SidebarGroupItem } from './sidebar-group-item';
+import { SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
+import { NAVIGATION } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { SearchDialog } from '../search-dialog';
-import { NAVIGATION } from '@/lib/navigation';
-import { UserStoragePrefsDialog } from '../storage-prefs-dialog';
-import { ClientOnly } from '../client-only';
+import Link from 'next/link';
+import { SidebarGroupItem } from './sidebar-group-item';
+import { SidebarShell } from './sidebar-shell';
 
 const animationDelayClasses = [
   'animate-[ping_1s_ease-in-out_forwards_reverse]',
@@ -24,8 +20,8 @@ const animationDelayClasses = [
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="text-center text-lg border-b h-13">
+    <SidebarShell>
+      <SidebarHeader className="shrink-0 text-center text-lg border-b h-13 md:hidden">
         <Link href="/" className="flex gap-4 items-center justify-center min-h-7">
           <Image
             src="/favicon.png"
@@ -35,7 +31,7 @@ export function AppSidebar() {
             height={32}
           />
 
-          <p className="font-bold group-data-[collapsible=icon]:hidden opacity-0 animate-[opacity_ease_250ms_350ms_forwards]">
+          <p className="font-light group-data-[collapsible=icon]:hidden opacity-0 animate-[opacity_ease_250ms_350ms_forwards]">
             {'Dev X Kit'.split('').map((l, idx) => (
               <span key={idx} className={cn('inline-flex', animationDelayClasses[idx])}>
                 {l === ' ' ? <span className="w-1.5" /> : l}
@@ -45,29 +41,11 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="pt-2">
-        <div className="px-1.5">
-          <SearchDialog />
-        </div>
-
+      <SidebarContent data-testid="app-sidebar-content" className="px-2">
         {NAVIGATION.getGroups().map((group) => (
-          <SidebarGroupItem key={group.label} path="" {...group} />
+          <SidebarGroupItem key={group.label} {...group} />
         ))}
       </SidebarContent>
-
-      <SidebarFooter>
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button asChild variant="outline" size="icon">
-            <a href="https://github.com/xristosn/dev-x-kit" target="_blank">
-              <BsGithub />
-            </a>
-          </Button>
-
-          <ClientOnly>
-            <UserStoragePrefsDialog />
-          </ClientOnly>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+    </SidebarShell>
   );
 }

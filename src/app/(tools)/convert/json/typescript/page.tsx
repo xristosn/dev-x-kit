@@ -1,24 +1,35 @@
 import { CodeSplitView } from '@/components/code-split-view/code-split-view';
+import { FaqSection } from '@/components/faq-section';
+import type { FaqItem } from '@/components/faq-section';
 import { jsonToTypescript } from '@/lib/actions/convert/json';
-import { createConvertOptionsFromQuicktypeOptions } from '@/lib/create-convert-options';
-import { TypeScriptTargetLanguage } from 'quicktype-core';
+import { JSON_TO_TYPESCRIPT_OPTIONS } from './_lib/constants';
 
-export const JSON_TO_TYPESCRIPT_OPTIONS = createConvertOptionsFromQuicktypeOptions(
-  new TypeScriptTargetLanguage(),
+const FAQS = [
   {
-    'acronym-style': 'camel',
-    'runtime-typecheck': false,
-    'just-types': true,
-  }
-);
+    title: 'Does the generated TypeScript validate JSON at runtime?',
+    description:
+      'No. This page generates types only by default, so TypeScript can check your code during development but does not validate data received at runtime. Add a runtime validator if API responses need to be checked before your app uses them.',
+  },
+  {
+    title: 'How does the converter know which properties are optional?',
+    description:
+      'It receives the one JSON sample in the editor. A property missing from other responses cannot be recognized from that single example, so compare the generated type with your API’s full range of responses and mark optional fields where needed.',
+  },
+  {
+    title: 'Will date-looking strings become JavaScript Date values?',
+    description:
+      'The input is JSON, where dates are represented as strings. Review the generated type and your application’s parsing code together if you want to work with Date objects; a TypeScript type alone does not convert the incoming value.',
+  },
+] satisfies readonly FaqItem[];
 
 export default function JsonToTypescript() {
   return (
-    <CodeSplitView
-      input={{
-        label: 'JSON',
-        language: 'json',
-        defaultValue: `{
+    <>
+      <CodeSplitView
+        input={{
+          label: 'JSON',
+          language: 'json',
+          defaultValue: `{
   "city": "Cloudhaven",
   "country": "Fantasyland",
   "date": "2025-12-11",
@@ -43,14 +54,16 @@ export default function JsonToTypescript() {
   ],
   "is_daylight_savings": false
 }`,
-      }}
-      output={{
-        label: 'Typescript',
-        language: 'typescript',
-        sourceUrl: 'https://github.com/glideapps/quicktype',
-      }}
-      converter={jsonToTypescript}
-      options={JSON_TO_TYPESCRIPT_OPTIONS}
-    />
+        }}
+        output={{
+          label: 'Typescript',
+          language: 'typescript',
+          sourceUrl: 'https://github.com/glideapps/quicktype',
+        }}
+        converter={jsonToTypescript}
+        options={JSON_TO_TYPESCRIPT_OPTIONS}
+      />
+      <FaqSection items={FAQS} />
+    </>
   );
 }

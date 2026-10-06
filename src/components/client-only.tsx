@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 
-export interface ClientOnlyProps extends React.PropsWithChildren {
+export type ClientOnlyProps = React.PropsWithChildren & {
   fallback?: React.ReactNode;
-}
+};
 
 export const ClientOnly: React.FC<ClientOnlyProps> = ({ children, fallback = null }) => {
   const [hasMounted, setHasMounted] = useState(false);

@@ -1,5 +1,14 @@
-import { v4 as uuid } from 'uuid';
 import { GradientValue } from '@/types/gradient';
+import { v4 as uuid } from 'uuid';
+
+export const SITE_URL = new URL(
+  typeof window === 'undefined'
+    ? process.env.SITE_URL ||
+        (() => {
+          throw new Error('SITE_URL must be set.');
+        })()
+    : 'http://localhost:3000'
+);
 
 export const SVGO_VALUES = [
   'removeDoctype',
@@ -142,3 +151,21 @@ export const GRADIENT_PRESETS: GradientValue[] = [
 ];
 
 export const USER_STORAGE_PREFS_KEY = 'user-storage-pref';
+
+export const RASTER_IMAGES_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/bmp',
+  'image/webp',
+  'image/tiff',
+];
+
+export const CODE_DISPLAY_DEBOUNCE_MS = 300;
+
+export const COPY_TIMEOUT_MS = 700;
+
+export const COOKIE_SHOW_DELAY_MS = 500;
+export const COOKIE_FADE_OUT_MS = 300;
+
+export const USE_COPY_TO_CLIPBOARD_TIMEOUT_MS = 2000;

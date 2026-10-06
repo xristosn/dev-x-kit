@@ -1,5 +1,3 @@
-'use server';
-
 import 'server-only';
 import type { Config } from 'prettier';
 import angular from 'prettier/plugins/angular';
@@ -40,12 +38,11 @@ export async function prettifyCode(code: string, config?: Config, parser?: Confi
     )
       code = code.replace(/export/g, '\n\nexport');
 
-    return format(code, {
+    return await format(code, {
       ...finalConfig,
       plugins: [angular, babel, estree, flow, graphql, html, markdown, postcss, typescript, yaml],
     });
-  } catch (err) {
-    console.error('Failed to prettify code', err, { input: code, config, parser });
+  } catch {
     return code;
   }
 }

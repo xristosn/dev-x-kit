@@ -7,14 +7,14 @@ import { CopyIconButton } from '../copy-button';
 import { ColorService, IColor } from 'react-color-palette';
 import { colorToString, stringToHexColor, stringToHsvColor, stringToRgbColor } from './utils';
 
-export interface ColorInputWrapperProps extends React.PropsWithChildren {
+export type ColorInputWrapperProps = React.PropsWithChildren & {
   id: string;
   label: string;
   error: boolean;
   value: IColor;
   setValue: (color: IColor) => void;
   colorMode: 'rgb' | 'hex' | 'hsv';
-}
+};
 
 export const ColorInputWrapper: React.FC<ColorInputWrapperProps> = ({
   id,
@@ -52,7 +52,9 @@ export const ColorInputWrapper: React.FC<ColorInputWrapperProps> = ({
     <div className="grid w-full items-center gap-2" onPaste={onPaste}>
       {label && (
         <div className="flex gap-4 items-center justify-between">
-          <Label htmlFor={id}>{label}</Label>
+          <Label data-testid={`${colorMode}-input-label`} htmlFor={id}>
+            {label}
+          </Label>
 
           <div className="flex gap-2">
             <CopyIconButton
@@ -63,6 +65,7 @@ export const ColorInputWrapper: React.FC<ColorInputWrapperProps> = ({
 
             {error && (
               <Button
+                data-testid="hex-error-btn"
                 size="icon-sm"
                 variant="outline"
                 className="size-6 text-destructive hover:text-destructive"

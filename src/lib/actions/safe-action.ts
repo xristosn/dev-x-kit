@@ -1,15 +1,44 @@
-'use server';
-
 import 'server-only';
-import { ActionError } from '@/types/action-error';
+import { randomUUID } from 'node:crypto';
+import {
+  ACTION_UNEXPECTED_MESSAGE,
+  ActionValidationError,
+  getActionValidationMessage,
+  isActionValidationCode,
+  type ActionError,
+} from '@/lib/action-error';
 
 export async function safeAction<T>(actionFn: () => Promise<T>): Promise<T | ActionError> {
   try {
-    const data = await actionFn();
-    return data;
-  } catch (err) {
-    console.error(err);
+    return await actionFn();
+  } catch (error) {
+    if (error instanceof ActionValidationError && isActionValidationCode(error.code)) {
+      return {
+        error: true,
+        kind: 'validation',
+        code: error.code,
+        message: getActionValidationMessage(error.code, error.location),
+        ...(error.location && { location: error.location }),
+      };
+    }
 
-    return { error: true, message: (err as Error)?.message || (err as string) };
+    const referenceId = randomUUID();
+    const stackFrames =
+      error instanceof Error
+        ? error.stack
+            ?.split('\n')
+            .slice(1)
+            .filter((line) => /^\s+at\s/.test(line))
+            .slice(0, 12)
+        : undefined;
+
+    console.error('[safeAction] Unexpected conversion failure', { referenceId, stackFrames });
+
+    return {
+      error: true,
+      kind: 'unexpected',
+      message: ACTION_UNEXPECTED_MESSAGE,
+      referenceId,
+    };
   }
 }

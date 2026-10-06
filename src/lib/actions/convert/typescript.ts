@@ -9,6 +9,7 @@ import { createGenerator } from 'ts-json-schema-generator';
 import { generate } from 'ts-to-zod';
 import { parseAsync, transformAsync } from '@babel/core';
 import { safeAction } from '../safe-action';
+import { ActionValidationError } from '@/lib/action-error';
 
 async function validateInput(input: string) {
   try {
@@ -20,10 +21,9 @@ async function validateInput(input: string) {
       sourceMaps: false,
       retainLines: false,
     });
-  } catch (err) {
-    throw new Error(`Input is not valid Typescript. ${(err as Error)?.message || err}`, {
-      cause: err,
-    });
+  } catch (error) {
+    if (error instanceof SyntaxError) throw new ActionValidationError('INVALID_TYPESCRIPT');
+    throw error;
   }
 }
 
@@ -65,7 +65,9 @@ export async function tsToZod(input: string, options: Record<string, unknown>) {
       const generator = generate({ ...options, sourceText: input });
       const schema = generator.getZodSchemasFile(filePath).split(/\r?\n/).slice(1).join('\n');
 
-      if (generator.errors.length) throw new Error(generator.errors.join('\n, '));
+      if (generator.errors.length) {
+        throw new ActionValidationError('TYPESCRIPT_GENERATION_FAILED');
+      }
 
       return prettifyCode(schema, undefined, 'typescript');
     } finally {

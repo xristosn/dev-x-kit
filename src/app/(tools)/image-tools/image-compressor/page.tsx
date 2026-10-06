@@ -1,23 +1,37 @@
 'use client';
 
-import { Container } from '@/components/container';
-import { FileUpload } from '@/components/ui/file-upload';
-import { cn } from '@/lib/utils';
+import { useWebStorage } from '@/hooks/use-web-storage';
+import { FaqSection, type FaqItem } from '@/components/faq-section';
 import { useState } from 'react';
 import Compressor from 'compressorjs';
-import { Spinner } from '@/components/ui/spinner';
-import { Button } from '@/components/ui/button';
-import prettyBytes from 'pretty-bytes';
 import JSZip from 'jszip';
-import { Check } from 'lucide-react';
-import { useWebStorage } from '@/hooks/use-web-storage';
 import {
   CompressionState,
   ConvertedFile,
   DEFAULT_IMAGE_COMPRESS_STORE_VALUE,
   MAX_FILES,
-} from './utils';
-import { QualityRange } from './quality-range';
+} from './_lib/utils';
+import { ImageCompressorUpload } from './_components/image-compressor-upload';
+import { ImageCompressorSetup } from './_components/image-compressor-setup';
+import { ImageCompressorResults } from './_components/image-compressor-results';
+
+const FAQS = [
+  {
+    title: 'Does the quality setting guarantee a smaller file?',
+    description:
+      'No. The setting controls the compressor quality from 10% to 99%, with 80% as the default. The resulting size depends on the image and its format, so a lower setting does not guarantee a particular size reduction.',
+  },
+  {
+    title: 'How many images can I compress at once?',
+    description:
+      'You can process up to 15 images in one batch. Each image must be no larger than 15 MiB. Compression runs one image at a time in your browser.',
+  },
+  {
+    title: 'What happens if one image in the batch fails?',
+    description:
+      'The remaining images continue processing. Successful results can be downloaded individually or together in a ZIP file, while failed files are skipped in the ZIP.',
+  },
+] satisfies readonly FaqItem[];
 
 export default function ImageCompressor() {
   const [value, setValue] = useWebStorage(
@@ -25,7 +39,7 @@ export default function ImageCompressor() {
     'infer',
     DEFAULT_IMAGE_COMPRESS_STORE_VALUE
   );
-  const [state, setState] = useState(CompressionState.None);
+  const [state, setState] = useState<CompressionState>(CompressionState.None);
   const [files, setFiles] = useState<File[]>([]);
   const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([]);
   const [activeFile, setActiveFile] = useState('');
@@ -33,38 +47,53 @@ export default function ImageCompressor() {
   const optimize = async () => {
     setState(CompressionState.Active);
 
-    for (const file of files) {
-      setActiveFile(file.name);
+    try {
+      for (const file of files) {
+        setActiveFile(file.name);
 
-      await new Promise((resolve, reject) => {
-        new Compressor(file, {
-          quality: value.quality,
-          mimeType: file.type,
-          retainExif: true,
+        try {
+          await new Promise<void>((resolve) => {
+            new Compressor(file, {
+              quality: value.quality,
+              mimeType: file.type,
+              retainExif: true,
 
-          success(outputFile) {
-            setConvertedFiles((p) => [
-              ...p,
-              {
-                name: file.name,
-                size: outputFile.size,
-                url: URL.createObjectURL(outputFile),
-                sizeSavedRatio: Math.round(((file.size - outputFile.size) / file.size) * 100),
+              success(outputFile) {
+                setConvertedFiles((p) => [
+                  ...p,
+                  {
+                    name: file.name,
+                    size: outputFile.size,
+                    url: URL.createObjectURL(outputFile),
+                    sizeSavedRatio: Math.round(((file.size - outputFile.size) / file.size) * 100),
+                  },
+                ]);
+                resolve();
               },
-            ]);
-            resolve(outputFile);
-          },
-          error(error) {
-            console.log(error.message);
-            setConvertedFiles((p) => [...p, { name: file.name, size: 0, error: error.message }]);
-            reject(error);
-          },
-        });
-      });
+              error(error) {
+                setConvertedFiles((p) => [
+                  ...p,
+                  { name: file.name, size: 0, error: error.message },
+                ]);
+                resolve();
+              },
+            });
+          });
+        } catch (error) {
+          setConvertedFiles((p) => [
+            ...p,
+            {
+              name: file.name,
+              size: 0,
+              error: error instanceof Error ? error.message : String(error),
+            },
+          ]);
+        }
+      }
+    } finally {
+      setActiveFile('');
+      setState(CompressionState.Ended);
     }
-
-    setActiveFile('');
-    setState(CompressionState.Ended);
   };
 
   const onDownloadAllClick = async () => {
@@ -99,136 +128,39 @@ export default function ImageCompressor() {
     totalOriginalSize > 0 ? Math.round((totalSizeSaved / totalOriginalSize) * 100) : 0;
 
   return (
-    <Container>
+    <>
       {state === CompressionState.None && (
-        <div
-          className={cn(
-            'flex flex-col gap-2',
-            state === CompressionState.None && !files.length && 'h-full'
-          )}
-        >
-          <FileUpload
-            accept={{ 'image/*': [] }}
-            maxSize={15 * 1024 * 1024}
-            maxFiles={MAX_FILES * 2}
-            showFilesList={false}
-            disabled={!!activeFile}
-            onDropAccepted={(files) => setFiles(files.slice(0, MAX_FILES))}
-            containerClassName="my-auto"
-            dropZoneClassName={cn(
-              'min-h-40',
-              state === CompressionState.None &&
-                !files.length &&
-                'h-[calc(75vh-var(--header-height)-(var(--spacing)*8))]'
-            )}
-          />
-
-          <p className="text-xs text-center text-muted-foreground">
-            Upload up to {MAX_FILES} images
-          </p>
-        </div>
+        <ImageCompressorUpload
+          files={files}
+          activeFile={activeFile}
+          onFilesAccepted={(acceptedFiles) => setFiles(acceptedFiles.slice(0, MAX_FILES))}
+        />
       )}
 
       {state === CompressionState.None && !!files.length && (
-        <div className="flex flex-col items-center gap-8 my-12 max-w-md mx-auto w-full">
-          <QualityRange
-            value={value.quality}
-            setValue={(v) => setValue((p) => ({ ...p, quality: v as number }))}
-          />
-
-          <Button
-            size="lg"
-            className="text-xl font-bold h-12 w-full"
-            variant="outline"
-            onClick={optimize}
-          >
-            Convert {files.length} file{files.length === 1 ? '' : 's'}
-          </Button>
-        </div>
+        <ImageCompressorSetup
+          fileCount={files.length}
+          quality={value.quality}
+          setQuality={(quality) => setValue((previous) => ({ ...previous, quality }))}
+          onOptimize={optimize}
+        />
       )}
 
       {state !== CompressionState.None && (
-        <>
-          <div className="shadow-md">
-            <div className="bg-card text-sidebar-foreground p-4 rounded-t-lg flex gap-4 items-center justify-between">
-              <div className="flex flex-col gap-2">
-                {activeFile && (
-                  <div className="flex gap-4 items-center">
-                    <Spinner />
-                    <p className="text-lg">Optimizing ({value.quality * 100}% quality)</p>
-                  </div>
-                )}
-
-                {!!convertedFiles.length && !activeFile && (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-lg flex gap-2 items-center">
-                      <Check className="text-green-500" /> Optimization Complete (
-                      {value.quality * 100}% quality)
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Original Size: {prettyBytes(totalOriginalSize)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Converted Size: {prettyBytes(totalConvertedSize)} (Saved:{' '}
-                      {totalSizeSavedRatio}
-                      %)
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <Button size="lg" variant="outline" onClick={onDownloadAllClick}>
-                Download all images
-              </Button>
-            </div>
-
-            <div className="flex flex-col gap-4 bg-sidebar p-4 rounded-b-lg">
-              {files.map((file) => {
-                const isActive = activeFile === file.name;
-                const converted = convertedFiles.find((f) => f.name === file.name);
-
-                return (
-                  <div key={file.name} className="flex gap-4 items-center justify-between">
-                    <div className="flex flex-col gap-2">
-                      <p>{file.name}</p>
-                      <p className="text-sm text-muted-foreground">{prettyBytes(file.size)}</p>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      {isActive ? (
-                        <Spinner />
-                      ) : converted?.error ? (
-                        <div className="flex flex-col gap-2">
-                          <p className="text-red-300">An error occured</p>
-                          <p className="text-xs text-muted-foreground">{converted.error}</p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-2 text-center">
-                          <Button asChild variant="outline" disabled={isActive || !converted}>
-                            <a href={converted?.url} download={file.name}>
-                              Download
-                            </a>
-                          </Button>
-
-                          {converted?.size && (
-                            <p className="text-sm text-muted-foreground">
-                              Saved {converted.sizeSavedRatio}% ({prettyBytes(converted.size)})
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <Button className="mx-auto mt-4" size="lg" variant="outline" onClick={onStartOver}>
-            Start Over
-          </Button>
-        </>
+        <ImageCompressorResults
+          files={files}
+          convertedFiles={convertedFiles}
+          activeFile={activeFile}
+          quality={value.quality}
+          totalOriginalSize={totalOriginalSize}
+          totalConvertedSize={totalConvertedSize}
+          totalSizeSavedRatio={totalSizeSavedRatio}
+          onDownloadAll={onDownloadAllClick}
+          onStartOver={onStartOver}
+        />
       )}
-    </Container>
+
+      <FaqSection items={FAQS} />
+    </>
   );
 }

@@ -1,92 +1,35 @@
 import { CodeSplitView } from '@/components/code-split-view/code-split-view';
+import { FaqSection } from '@/components/faq-section';
+import type { FaqItem } from '@/components/faq-section';
 import { jssToCss } from '@/lib/actions/convert/jss';
-import { createConvertOptions } from '@/lib/create-convert-options';
-import { ConvertOptionRadio } from '@/types/convert';
+import { CSS_OPTIONS } from './_lib/constants';
 
-const UNIT_VALUES: ConvertOptionRadio['values'] = ['px', 'rem', 'em', '%', 'vw', 'vh'].map((v) => ({
-  label: v,
-  value: v,
-}));
-
-export const CSS_OPTIONS = createConvertOptions([
+const FAQS = [
   {
-    name: 'generateClassIds',
-    label: 'Suffix class names with ids',
-    type: 'switch',
-    defaultValue: false,
+    title: 'Can I paste a JSS style object without a variable declaration?',
+    description:
+      'Yes. The converter accepts style objects declared with const, let, or var, and also has a fallback for a bare style object. A declared object’s variable name becomes its CSS selector unless you enable generated class IDs.',
   },
   {
-    name: 'transformShortProps',
-    label: 'Transform short properties (ml to margin-left)',
-    type: 'switch',
-    defaultValue: true,
+    title: 'How are nested selectors and media queries converted?',
+    description:
+      'Nested selectors such as &:hover and nested at-rules such as media queries are converted into CSS rules. Review the generated selectors and breakpoints in context, especially when the source uses nested selectors that depend on the original component class.',
   },
   {
-    name: 'defaultUnitValues',
-    label: 'Default units for numeric values',
-    type: 'switch',
-    defaultValue: true,
-    children: [
-      {
-        name: 'defaultUnits["font-size"]',
-        label: 'Font size unit',
-        type: 'radio',
-        values: UNIT_VALUES,
-        defaultValue: 'px',
-      },
-      {
-        name: 'defaultUnits["line-height"]',
-        label: 'Line height unit',
-        type: 'radio',
-        values: UNIT_VALUES,
-        defaultValue: 'px',
-      },
-      {
-        name: 'defaultUnits["width"]',
-        label: 'Sizes unit (width / height)',
-        type: 'radio',
-        values: UNIT_VALUES,
-        defaultValue: 'px',
-      },
-      {
-        name: 'defaultUnits["margin"]',
-        label: 'Margins unit',
-        type: 'radio',
-        values: UNIT_VALUES,
-        defaultValue: 'px',
-      },
-      {
-        name: 'defaultUnits["padding"]',
-        label: 'Paddings unit',
-        type: 'radio',
-        values: UNIT_VALUES,
-        defaultValue: 'px',
-      },
-      {
-        name: 'defaultUnits["border"]',
-        label: 'Border unit',
-        type: 'radio',
-        values: UNIT_VALUES,
-        defaultValue: 'px',
-      },
-      {
-        name: 'defaultUnits["top"]',
-        label: 'Position unit',
-        type: 'radio',
-        values: UNIT_VALUES,
-        defaultValue: 'px',
-      },
-    ],
+    title: 'What do the shorthand and unit options change?',
+    description:
+      'The Transform short properties option expands JSS shortcuts such as ml into margin-left. The Default units option adds units to numeric values for supported properties such as font size, width, margin, and padding. Both options are on by default, with px selected for each unit setting.',
   },
-]);
+] satisfies readonly FaqItem[];
 
 export default function JssToCss() {
   return (
-    <CodeSplitView
-      input={{
-        label: 'JSS',
-        language: 'typescript',
-        defaultValue: `const primaryButtonStyles = {
+    <>
+      <CodeSplitView
+        input={{
+          label: 'JSS',
+          language: 'typescript',
+          defaultValue: `const primaryButtonStyles = {
   backgroundColor: '#007bff',
   color: 'white',
   padding: '10px 15px',
@@ -166,14 +109,16 @@ const cardComponentStyles = {
     },
   }
 };`,
-      }}
-      output={{
-        label: 'CSS',
-        language: 'css',
-        sourceUrl: 'https://www.npmjs.com/package/jss',
-      }}
-      converter={jssToCss}
-      options={CSS_OPTIONS}
-    />
+        }}
+        output={{
+          label: 'CSS',
+          language: 'css',
+          sourceUrl: 'https://www.npmjs.com/package/jss',
+        }}
+        converter={jssToCss}
+        options={CSS_OPTIONS}
+      />
+      <FaqSection items={FAQS} />
+    </>
   );
 }

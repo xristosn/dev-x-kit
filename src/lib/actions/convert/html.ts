@@ -8,25 +8,14 @@ import { Window } from 'happy-dom';
 
 import { prettifyCode } from './prettify';
 import { safeAction } from '../safe-action';
+import { ActionValidationError } from '@/lib/action-error';
 
 function validateInput(input: string) {
-  try {
-    const $ = loadHtml(input);
+  const $ = loadHtml(input);
+  const bodyContent = $('body').html();
 
-    const bodyContent = $('body').html();
-
-    if (!bodyContent) {
-      throw new Error('Input could not be recognized or parsed as HTML content.');
-    }
-
-    if (!bodyContent.trim()) {
-      throw new Error(
-        'Input was parsed but resulted in an empty body (likely non-HTML content or only comments).'
-      );
-    }
-  } catch (err) {
-    throw new Error(`Input is not valid HTML. ${(err as Error)?.message || err}`, { cause: err });
-  }
+  if (!bodyContent) throw new ActionValidationError('INVALID_HTML');
+  if (!bodyContent.trim()) throw new ActionValidationError('EMPTY_HTML_BODY');
 }
 
 export async function htmlToJsx(input: string, options: Record<string, unknown>) {
@@ -50,6 +39,9 @@ export async function htmlToMarkdown(input: string, options: Record<string, unkn
     validateInput(input);
 
     const win = new Window();
+    // happy-dom is a JS-only DOM implementation (no browser script execution).
+    // Input has already been validated as HTML via validateInput().
+    // Monitor happy-dom security advisories for any future changes.
     win.document.write(input);
 
     const md = convertHtmlToMarkdown(input, {

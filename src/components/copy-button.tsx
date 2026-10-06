@@ -1,14 +1,16 @@
 'use client';
 
+import { COPY_TIMEOUT_MS } from '@/lib/constants';
+import { cn } from '@/lib/utils';
+import { type BaseUIEvent } from '@base-ui/react';
+import { Copy, CopyCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
-import { cn } from '@/lib/utils';
-import { Copy, CopyCheck } from 'lucide-react';
 
-export interface CopyButtonProps extends React.ComponentProps<typeof Button> {
+export type CopyButtonProps = React.ComponentProps<typeof Button> & {
   value: string;
   copiedProps?: React.ComponentProps<typeof Button>;
-}
+};
 
 export const CopyButton: React.FC<CopyButtonProps> = ({
   onClick,
@@ -20,7 +22,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleClick = (e: BaseUIEvent<React.MouseEvent<HTMLButtonElement, MouseEvent>>) => {
     setCopied(true);
     onClick?.(e);
   };
@@ -32,13 +34,14 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
 
     const timeout = setTimeout(() => {
       setCopied(false);
-    }, 700);
+    }, COPY_TIMEOUT_MS);
 
     return () => clearTimeout(timeout);
   }, [copied, value]);
 
   return (
     <Button
+      data-testid="copy-button"
       {...buttonProps}
       {...(copied ? copiedProps : {})}
       className={cn(className, copied && copiedProps.className)}

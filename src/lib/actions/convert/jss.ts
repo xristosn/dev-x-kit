@@ -1,27 +1,37 @@
 'use server';
 
-import 'server-only';
-import JSON from 'json5';
-import ivm from 'isolated-vm';
-import { create, createGenerateId, GenerateId, type Plugin } from 'jss';
-import jssDefaultPreset from 'jss-preset-default';
-import type { Options as DefaultUnitOptions } from 'jss-plugin-default-unit';
+import { ActionValidationError, isActionError } from '@/lib/action-error';
 import { parseAsync } from '@babel/core';
-import { prettifyCode } from './prettify';
-import { cssToScss, cssToTailwindV3 } from './css';
+import ivm from 'isolated-vm';
+import JSON from 'json5';
+import { create, createGenerateId, GenerateId, type Plugin } from 'jss';
+import type { Options as DefaultUnitOptions } from 'jss-plugin-default-unit';
+import jssDefaultPreset from 'jss-preset-default';
+import 'server-only';
 import { safeAction } from '../safe-action';
-import { ActionError } from '@/types/action-error';
+import { cssToScss, cssToTailwindV3 } from './css';
+import { prettifyCode } from './prettify';
+
+const SANDBOX_TIMEOUT_MS = 5000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('Sandbox execution timed out')), timeoutMs);
+  });
+  return Promise.race([promise, timeout]);
+}
 
 async function validateInput(input: string) {
   try {
     await parseAsync(input, {
       sourceType: 'module',
     });
-  } catch (err) {
+  } catch {
     try {
       await parseAsync(`const __root = { ${input} }`, { sourceType: 'module' });
-    } catch {
-      throw new Error(`Input is not valid JSS. ${(err as Error)?.message || err}`, { cause: err });
+    } catch (error) {
+      if (error instanceof SyntaxError) throw new ActionValidationError('INVALID_JSS');
+      throw error;
     }
   }
 }
@@ -35,7 +45,7 @@ async function runInSandbox(input: string) {
   const global = context.global;
 
   try {
-    await context.eval(modifiedCode);
+    await withTimeout(context.eval(modifiedCode), SANDBOX_TIMEOUT_MS);
 
     const result = await global.get('scopeVariables');
 
@@ -45,7 +55,7 @@ async function runInSandbox(input: string) {
   } catch (err) {
     try {
       const wrappedCode = `const __root = { ${input} }; scopeVariables = [{ ROOT: __root }];`;
-      await context.eval(wrappedCode);
+      await withTimeout(context.eval(wrappedCode), SANDBOX_TIMEOUT_MS);
       const result = await global.get('scopeVariables');
       return result.copy();
     } catch {
@@ -137,7 +147,7 @@ export async function jssToCss(input: string, options: Record<string, unknown>) 
       styleObjects.push(...(await runInSandbox(input)));
     }
 
-    if (!styleObjects.length) throw new Error('No style objects found');
+    if (!styleObjects.length) throw new ActionValidationError('NO_JSS_STYLE_OBJECTS');
 
     let code = '';
 
@@ -195,9 +205,7 @@ export async function jssToScss(input: string, options: Record<string, unknown>)
 
     const css = await jssToCss(input, { ...options, rawOutput: false });
 
-    if ((css as ActionError)?.error) {
-      throw new Error((css as ActionError).message);
-    }
+    if (isActionError(css)) return css;
 
     const scss = await cssToScss(css as string);
 
@@ -215,9 +223,7 @@ export async function jssToTailwindV3(input: string, options: Record<string, unk
 
     const css = await jssToCss(input, { ...options, rawOutput: false });
 
-    if ((css as ActionError)?.error) {
-      throw new Error((css as ActionError).message);
-    }
+    if (isActionError(css)) return css;
 
     return await cssToTailwindV3(css as string, options);
   });

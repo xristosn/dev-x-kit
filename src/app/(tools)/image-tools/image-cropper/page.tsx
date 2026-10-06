@@ -1,17 +1,34 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import ReactCrop, { centerCrop, makeAspectCrop, Crop, PixelCrop } from 'react-image-crop';
-import { Download, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { centerCrop, Crop, makeAspectCrop, PixelCrop } from 'react-image-crop';
 
-import { Container } from '@/components/container';
+import { FaqSection, type FaqItem } from '@/components/faq-section';
 import FileUpload from '@/components/ui/file-upload';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import { useWebStorage } from '@/hooks/use-web-storage';
 import { cn } from '@/lib/utils';
 
 import 'react-image-crop/dist/ReactCrop.css';
-import { useWebStorage } from '@/hooks/use-web-storage';
+import { ImageCropperControls } from './_components/image-cropper-controls';
+import { ImageCropperEditor } from './_components/image-cropper-editor';
+
+const FAQS = [
+  {
+    title: 'Does the crop start at a 16:9 aspect ratio?',
+    description:
+      'Yes. When an image loads, the crop selection starts centered at 16:9. Aspect-ratio locking is initially off, so you can adjust the selection freely.',
+  },
+  {
+    title: 'What happens when I lock the aspect ratio?',
+    description:
+      'Locking preserves the ratio of the current crop selection. It does not reset the selection to 16:9. Leave the lock off if you want to adjust width and height independently.',
+  },
+  {
+    title: 'What format and filename does the crop download use?',
+    description:
+      'The selected area is exported as a PNG named cropped-image.png, regardless of the original image format. Complete a crop selection before clicking Download.',
+  },
+] satisfies readonly FaqItem[];
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number) {
   return centerCrop(
@@ -97,82 +114,53 @@ export default function ImageCropper() {
   }
 
   return (
-    <Container>
+    <>
       {!imgSrc ? (
         <FileUpload
+          enableImageClipboard
           accept={{ 'image/*': [] }}
           maxSize={15 * 1024 * 1024}
           maxFiles={1}
           showFilesList={false}
+          inputTestId="image-cropper-file-input"
           onDropAccepted={(files) => onFileChange(files[0])}
-          dropZoneClassName={cn(
-            'min-h-40',
-            'h-[calc(75vh-var(--header-height)-(var(--spacing)*8))]'
-          )}
+          dropZoneClassName={cn('editor-height')}
         />
       ) : (
         <div className="flex flex-col gap-4 h-full">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="lock-aspect-ratio"
-                checked={value.lockAspectRatio}
-                onCheckedChange={(checked) => {
-                  setValue((p) => ({ ...p, lockAspectRatio: checked }));
-                  if (checked && crop && crop.width && crop.height) {
-                    setAspectRatio(crop.width / crop.height);
-                  }
-                }}
-              />
-              <label
-                htmlFor="lock-aspect-ratio"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Lock Aspect Ratio
-              </label>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setImgSrc('');
-                  setCrop(undefined);
-                  setValue((p) => ({ ...p, lockAspectRatio: false }));
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Reset
-              </Button>
-              <Button size="sm" onClick={onDownloadCropClick}>
-                <Download className="mr-2 h-4 w-4" />
-                Download
-              </Button>
-            </div>
-          </div>
+          <ImageCropperControls
+            lockAspectRatio={value.lockAspectRatio}
+            onLockAspectRatioChange={(checked) => {
+              setValue((p) => ({ ...p, lockAspectRatio: checked }));
+              if (checked && crop && crop.width && crop.height) {
+                const image = imgRef.current;
+                const scaleX = crop.unit === '%' && image ? image.width : 1;
+                const scaleY = crop.unit === '%' && image ? image.height : 1;
+                setAspectRatio((crop.width * scaleX) / (crop.height * scaleY));
+              }
+            }}
+            onReset={() => {
+              setImgSrc('');
+              setCrop(undefined);
+              setValue((p) => ({ ...p, lockAspectRatio: false }));
+            }}
+            onDownload={onDownloadCropClick}
+          />
 
-          <div className="h-full alpha-grid flex items-center justify-center">
-            <div className="flex justify-center">
-              <ReactCrop
-                crop={crop}
-                aspect={value.lockAspectRatio ? aspectRatio : undefined}
-                onChange={(_, percentCrop) => setCrop(percentCrop)}
-                onComplete={(c) => setCompletedCrop(c)}
-                className="max-h-[70vh]"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  ref={imgRef}
-                  alt="Crop me"
-                  src={imgSrc}
-                  onLoad={onImageLoad}
-                  className="max-h-[70vh] w-auto object-contain"
-                />
-              </ReactCrop>
-            </div>
-          </div>
+          <ImageCropperEditor
+            imgSrc={imgSrc}
+            crop={crop}
+            aspectRatio={aspectRatio}
+            lockAspectRatio={value.lockAspectRatio}
+            imgRef={imgRef}
+            onCropChange={setCrop}
+            onCropComplete={setCompletedCrop}
+            onImageLoad={onImageLoad}
+          />
         </div>
       )}
-    </Container>
+
+      <FaqSection items={FAQS} />
+    </>
   );
 }

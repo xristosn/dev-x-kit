@@ -1,16 +1,10 @@
 import { USER_STORAGE_PREFS_KEY } from '@/lib/constants';
 import { isEqual } from 'lodash-es';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type StorageType = 'local' | 'session' | 'infer' | 'memory';
 
 const CUSTOM_EVENT_NAME = 'web-storage-update' as const;
-
-declare global {
-  interface WindowEventMap {
-    [CUSTOM_EVENT_NAME]: CustomEvent;
-  }
-}
 
 function getStorageValue<ValueType>(
   key: string,
@@ -47,11 +41,16 @@ export function useWebStorage<ValueType>(
   retainValueIfDefault: boolean = false
 ) {
   const [storageType, setStorageType] = useState(
-    inputStorageType === 'infer' ? getUserPreferredStorageType() : 'local'
+    inputStorageType === 'infer'
+      ? getUserPreferredStorageType()
+      : ['local', 'session', 'memory'].includes(inputStorageType)
+        ? inputStorageType
+        : 'local'
   );
   const [storeValue, setStoreValue] = useState<ValueType>(
     storageType === 'memory' ? defaultValue : getStorageValue(key, storageType, defaultValue)
   );
+  const valueKey = useRef(key);
 
   const setValue = (valueOrFn: ValueType | ((previousValue: ValueType) => ValueType)) => {
     setStoreValue((previousValue) => {
@@ -90,7 +89,7 @@ export function useWebStorage<ValueType>(
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const onStorageChange = (e: StorageEvent | CustomEvent) => {
+  const onStorageChange = (e: Event) => {
     const eventKey = (e as StorageEvent).key || (e as CustomEvent<{ key: string }>)?.detail?.key;
 
     if (!eventKey) {
@@ -136,7 +135,14 @@ export function useWebStorage<ValueType>(
   }, [key, onStorageChange, storageType]);
 
   useEffect(() => {
-    if (key !== USER_STORAGE_PREFS_KEY) setValue((v) => v);
+    const keyChanged = valueKey.current !== key;
+    valueKey.current = key;
+
+    if (key === USER_STORAGE_PREFS_KEY) {
+      if (keyChanged) setStoreValue(getStorageValue(key, storageType, defaultValue));
+    } else {
+      setValue(keyChanged ? getStorageValue(key, storageType, defaultValue) : (v) => v);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, storageType]);
 

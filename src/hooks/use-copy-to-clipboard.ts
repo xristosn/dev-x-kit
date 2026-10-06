@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { USE_COPY_TO_CLIPBOARD_TIMEOUT_MS } from '@/lib/constants';
 
 type UseCopyToClipboardProps = {
   text: string;
@@ -25,7 +26,7 @@ export function useCopyToClipboard({
         }
         timeoutRef.current = setTimeout(() => {
           setIsCopied(false);
-        }, 2000);
+        }, USE_COPY_TO_CLIPBOARD_TIMEOUT_MS);
       })
       .catch(() => {
         toast.error('Failed to copy to clipboard.');

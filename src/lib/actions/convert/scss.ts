@@ -5,6 +5,7 @@ import { compileStringAsync } from 'sass';
 import { prettifyCode } from './prettify';
 import { cssToJs, cssToTailwindV3 } from './css';
 import { safeAction } from '../safe-action';
+import { isActionError } from '@/lib/action-error';
 
 export async function scssToCss(input: string, options: Record<string, unknown>) {
   return safeAction(async () => {
@@ -26,15 +27,11 @@ export async function scssToJs(input: string) {
   return safeAction(async () => {
     const css = await scssToCss(input, { format: 'expanded' });
 
-    if (typeof css === 'object' && 'error' in css) {
-      throw new Error(css.message);
-    }
+    if (isActionError(css)) return css;
 
     const js = await cssToJs(css as string);
 
-    if (typeof js === 'object' && 'error' in js) {
-      throw new Error(js.message);
-    }
+    if (isActionError(js)) return js;
 
     return prettifyCode(js, undefined, 'typescript');
   });
@@ -44,9 +41,7 @@ export async function scssToTailwindV3(input: string, options: Record<string, un
   return safeAction(async () => {
     const css = await scssToCss(input, { format: 'expanded' });
 
-    if (typeof css === 'object' && 'error' in css) {
-      throw new Error(css.message);
-    }
+    if (isActionError(css)) return css;
 
     return await cssToTailwindV3(css as string, options);
   });

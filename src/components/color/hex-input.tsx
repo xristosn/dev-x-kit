@@ -2,42 +2,29 @@
 
 import { ColorService, IColor } from 'react-color-palette';
 import { Input } from '../ui/input';
-import { useEffect, useState } from 'react';
-import tinyColor from 'tinycolor2';
 import { ColorInputWrapper } from './color-input-wrapper';
 import { stringToHexColor } from './utils';
+import { useColorInput } from './_hooks/use-color-input';
 
-export interface HexInputProps {
+export type HexInputProps = {
   value: IColor;
   setValue: (color: IColor) => void;
   noLabel?: boolean;
-}
+};
 
 export const HexInput: React.FC<HexInputProps> = ({ value, setValue, noLabel }) => {
-  const [color, setColor] = useState(value.hex);
-  const [error, setError] = useState(false);
+  const { color, applyChange, error } = useColorInput(
+    value.hex,
+    value.hex,
+    (hex) => stringToHexColor(hex) !== null
+  );
 
   const onColorChange = (value: string) => {
     let finalValue = value;
-
     if (finalValue && !finalValue.startsWith('#')) finalValue = `#${finalValue}`;
-
-    const hasError = !tinyColor(finalValue).isValid() || !stringToHexColor(finalValue);
-
-    if (hasError) {
-      setColor(finalValue);
-
-      setError(hasError);
-    } else {
-      setValue(ColorService.convert('hex', finalValue));
-    }
+    const hasError = applyChange(finalValue);
+    if (!hasError) setValue(ColorService.convert('hex', finalValue));
   };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setColor(value.hex);
-    setError(false);
-  }, [value.hex]);
 
   return (
     <ColorInputWrapper
@@ -49,6 +36,7 @@ export const HexInput: React.FC<HexInputProps> = ({ value, setValue, noLabel }) 
       colorMode="hex"
     >
       <Input
+        data-testid="hex-input"
         id="color-picker-hex"
         placeholder="#RRGGBB or #RGB"
         pattern="^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"

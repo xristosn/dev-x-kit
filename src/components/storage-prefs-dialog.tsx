@@ -1,5 +1,10 @@
 'use client';
 
+import { useWebStorage } from '@/hooks/use-web-storage';
+import { USER_STORAGE_PREFS_KEY } from '@/lib/constants';
+import { Database } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ClientOnly } from './client-only';
 import { Button } from './ui/button';
 import {
   Dialog,
@@ -9,12 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog';
-import { useWebStorage } from '@/hooks/use-web-storage';
-import { USER_STORAGE_PREFS_KEY } from '@/lib/constants';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
-import { Database } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 const STORAGE_VALUES = [
   {
@@ -37,20 +38,27 @@ const STORAGE_VALUES = [
   },
 ];
 
-export const UserStoragePrefsDialog: React.FC = () => {
-  const [open, setOpen] = useState(false);
+export const UserStoragePrefsDialog: React.FC = () => (
+  <ClientOnly
+    fallback={
+      <Button data-testid="storage-prefs-trigger" size="icon" variant="outline">
+        <span className="sr-only">Choose Your Storage Preference</span>
+        <Database />
+      </Button>
+    }
+  >
+    <UserStoragePrefsDialogContent />
+  </ClientOnly>
+);
+
+const UserStoragePrefsDialogContent: React.FC = () => {
   const [value, setValue, , valueExists] = useWebStorage(
     USER_STORAGE_PREFS_KEY,
     'local',
     'local',
     true
   );
-
-  useEffect(() => {
-    if (!valueExists()) {
-      setOpen(true);
-    }
-  }, [valueExists]);
+  const [open, setOpen] = useState(() => !valueExists());
 
   useEffect(() => {
     if (!open && !valueExists()) {
@@ -61,13 +69,17 @@ export const UserStoragePrefsDialog: React.FC = () => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="icon" variant="outline">
-          <Database />
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        data-testid="storage-prefs-trigger"
+        render={
+          <Button size="icon" variant="outline">
+            <Database />
+            <span className="sr-only">Choose Your Storage Preference</span>
+          </Button>
+        }
+      />
 
-      <DialogContent className="gap-8">
+      <DialogContent data-testid="storage-prefs-dialog" className="gap-8 bg-background">
         <DialogHeader>
           <DialogTitle>Choose Your Storage Preference</DialogTitle>
 
@@ -80,7 +92,12 @@ export const UserStoragePrefsDialog: React.FC = () => {
         <RadioGroup value={value} onValueChange={(v) => setValue(v)}>
           {STORAGE_VALUES.map((v) => (
             <div key={v.value} className="flex items-start gap-3">
-              <RadioGroupItem value={v.value} id={`storage-${v.value}`} className="size-5 mt-1.5" />
+              <RadioGroupItem
+                data-testid={`storage-pref-${v.value}`}
+                value={v.value}
+                id={`storage-${v.value}`}
+                className="size-5 mt-1.5"
+              />
 
               <Label
                 htmlFor={`storage-${v.value}`}

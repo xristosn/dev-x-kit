@@ -5,7 +5,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-interface CircularSliderProps {
+type CircularSliderProps = {
   value: number;
   onChange: (value: number) => void;
   min?: number;
@@ -14,7 +14,7 @@ interface CircularSliderProps {
   strokeWidth?: number;
   className?: string;
   disabled?: boolean;
-}
+};
 
 export function CircularSlider({
   value,
@@ -68,12 +68,6 @@ export function CircularSlider({
     if (disabled) return;
     setIsDragging(true);
   };
-
-  useEffect(() => {
-    if (!isEditing) {
-      setInputValue(value.toString());
-    }
-  }, [value, isEditing]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -139,6 +133,7 @@ export function CircularSlider({
 
   return (
     <div
+      data-testid="circular-slider"
       className={cn(
         'relative inline-flex items-center justify-center',
         disabled && 'opacity-50',
@@ -148,6 +143,7 @@ export function CircularSlider({
     >
       <svg
         ref={svgRef}
+        data-testid="circular-slider-track"
         width={size}
         height={size}
         viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
@@ -205,12 +201,16 @@ export function CircularSlider({
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="text-center pointer-events-auto">
           <input
+            data-testid="circular-slider-input"
             type="text"
-            value={inputValue}
+            value={isEditing ? inputValue : value.toString()}
             onChange={handleInputChange}
             onBlur={handleInputBlur}
             onKeyDown={handleInputKeyDown}
-            onFocus={() => setIsEditing(true)}
+            onFocus={() => {
+              setInputValue(value.toString());
+              setIsEditing(true);
+            }}
             disabled={disabled}
             style={{
               fontSize: `${inputFontSize}px`,

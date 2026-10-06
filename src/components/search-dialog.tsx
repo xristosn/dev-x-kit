@@ -1,29 +1,28 @@
 'use client';
 
+import { useIsMobile } from '@/hooks/use-mobile';
+import { NAVIGATION } from '@/lib/navigation';
+import { cn } from '@/lib/utils';
 import { Search } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Input } from './ui/input';
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { useSidebar } from './ui/sidebar';
-import { cn } from '@/lib/utils';
-import { NAVIGATION } from '@/lib/navigation';
 
-export interface SearchDialogProps {
+export type SearchDialogProps = {
   triggerProps?: React.ComponentProps<typeof Button>;
   forceOpen?: boolean;
-}
+  size?: 'default' | 'lg';
+};
 
-export const SearchDialog: React.FC<SearchDialogProps> = ({ triggerProps, forceOpen }) => {
+export const SearchDialog: React.FC<SearchDialogProps> = ({ triggerProps, size }) => {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultRefs = useRef<Array<HTMLAnchorElement | null>>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const { open: sidebarOpen, openMobile: sidebarOpenMobile, isMobile } = useSidebar();
-
-  const isSidebarOpen = forceOpen || (isMobile ? sidebarOpenMobile : sidebarOpen);
+  const isMobile = useIsMobile();
 
   const results = query.trim()
     ? NAVIGATION.fuzzySearch(query.trim())
@@ -109,33 +108,40 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ triggerProps, forceO
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          size={isSidebarOpen ? 'default' : 'icon'}
-          variant="outline"
-          className={cn(isSidebarOpen ? 'min-w-50 w-full cursor-pointer' : '')}
-          {...triggerProps}
-        >
-          <Search />
+      <DialogTrigger
+        render={
+          <Button
+            data-testid="search-dialog-trigger"
+            size={!isMobile ? (size ?? 'default') : 'icon'}
+            variant="outline"
+            className={cn(!isMobile ? 'min-w-50 w-full cursor-pointer rounded-md' : '')}
+            {...triggerProps}
+          >
+            <Search />
 
-          {isSidebarOpen && (
-            <>
-              <div className="w-full text-left">Search</div>
-              <div className="flex gap-1 text-xs">
-                <kbd className="py-0.5 px-1 bg-accent/60 rounded-sm">CTRL</kbd>
-                <kbd className="py-0.5 px-1 bg-accent/60 rounded-sm">K</kbd>
-              </div>
-            </>
-          )}
-        </Button>
-      </DialogTrigger>
+            {!isMobile && (
+              <>
+                <div className="w-full text-left">Search</div>
+                <div className="flex gap-1 text-xs">
+                  <kbd className="py-0.5 px-1 bg-accent/60 rounded-sm">CTRL</kbd>
+                  <kbd className="py-0.5 px-1 bg-accent/60 rounded-sm">K</kbd>
+                </div>
+              </>
+            )}
+          </Button>
+        }
+      ></DialogTrigger>
 
-      <DialogContent className="lg:max-w-2xl" onKeyDown={onDialogKeyDown}>
+      <DialogContent
+        className="lg:max-w-2xl h-1/2 min-h-[90%] sm:min-h-90 max-h-[80vh] bg-background content-start"
+        onKeyDown={onDialogKeyDown}
+      >
         <DialogHeader>
           <DialogTitle>Search</DialogTitle>
         </DialogHeader>
 
         <Input
+          data-testid="search-dialog-input"
           ref={inputRef}
           autoFocus
           type="search"
@@ -146,36 +152,40 @@ export const SearchDialog: React.FC<SearchDialogProps> = ({ triggerProps, forceO
           onKeyDown={onInputKeyDown}
         />
 
-        <div className="flex flex-col gap-2 max-h-60 p-2 -mx-2 overflow-y-auto">
+        <div className="flex flex-col gap-2 p-2 -mx-2 overflow-y-auto h-full">
           {results.map((r, idx) => (
             <Button
               key={r.path || r.label}
-              asChild
               variant="ghost"
-              className="justify-start items-start flex-col flex-wrap h-auto whitespace-normal"
+              className="justify-start items-start flex-col flex-wrap h-auto whitespace-normal border-none p-2 rounded-lg"
               onClick={() => setOpen(false)}
-            >
-              <Link
-                href={r.path}
-                ref={(el) => {
-                  resultRefs.current[idx] = el;
-                }}
-                onFocus={() => setHighlightedIndex(idx)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    setOpen(false);
-                  }
-                }}
-              >
-                <span className="flex gap-2 items-center">
-                  {r.icon}
+              nativeButton={false}
+              render={
+                <Link
+                  data-testid="search-dialog-result"
+                  href={r.path}
+                  ref={(el) => {
+                    resultRefs.current[idx] = el;
+                  }}
+                  onFocus={() => setHighlightedIndex(idx)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setOpen(false);
+                    }
+                  }}
+                >
+                  <span className="flex gap-2 items-center">
+                    {r.icon}
 
-                  <span>{r.fullName || r.label}</span>
-                </span>
+                    <span>{r.fullName || r.label}</span>
+                  </span>
 
-                {r.summary && <span className="text-muted-foreground/70 text-xs">{r.summary}</span>}
-              </Link>
-            </Button>
+                  {r.summary && (
+                    <span className="text-muted-foreground/70 text-xs">{r.summary}</span>
+                  )}
+                </Link>
+              }
+            />
           ))}
         </div>
       </DialogContent>

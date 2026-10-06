@@ -11,15 +11,12 @@ import { validate } from 'csstree-validator';
 import { CssToTailwindTranslator } from 'css-to-tailwind-translator';
 import { prettifyCode } from './prettify';
 import { safeAction } from '../safe-action';
+import { ActionValidationError } from '@/lib/action-error';
 
 function validateInput(input: string) {
   const errors = validate(input, 'input.css');
 
-  if (errors.length) {
-    throw new Error(`Input is not valid CSS, ${errors.map((err: Error) => err.message)}`, {
-      cause: errors,
-    });
-  }
+  if (errors.length) throw new ActionValidationError('INVALID_CSS');
 }
 
 export async function cssToJs(input: string) {
@@ -70,8 +67,7 @@ export async function cssToTailwindV3(code: string, options: Record<string, unkn
     });
 
     if (result.code === 'SyntaxError') {
-      console.log(result);
-      throw new SyntaxError('');
+      throw new ActionValidationError('INVALID_CSS');
     }
 
     const resultCode = result.data

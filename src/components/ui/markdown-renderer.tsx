@@ -5,9 +5,9 @@ import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { CopyButton } from '@/components/ui/copy-button';
 
-interface MarkdownRendererProps {
+type MarkdownRendererProps = {
   children: string;
-}
+};
 
 const COMPONENTS: Components = {
   h1: withClass('h1', 'text-2xl font-semibold'),
@@ -67,10 +67,10 @@ export function MarkdownRenderer({ children }: MarkdownRendererProps) {
   );
 }
 
-interface HighlightedPre extends React.HTMLAttributes<HTMLPreElement> {
+type HighlightedPre = React.HTMLAttributes<HTMLPreElement> & {
   children: string;
   language: string;
-}
+};
 
 const HighlightedPre = React.memo(async ({ children, language, ...props }: HighlightedPre) => {
   const { codeToTokens, bundledLanguages } = await import('shiki');
@@ -117,11 +117,11 @@ const HighlightedPre = React.memo(async ({ children, language, ...props }: Highl
 });
 HighlightedPre.displayName = 'HighlightedCode';
 
-interface CodeBlockProps extends React.HTMLAttributes<HTMLPreElement> {
+type CodeBlockProps = React.HTMLAttributes<HTMLPreElement> & {
   children: React.ReactNode;
   className?: string;
   language: string;
-}
+};
 
 const CodeBlock = ({ children, className, language, ...restProps }: CodeBlockProps) => {
   const code = typeof children === 'string' ? children : childrenTakeAllStringContents(children);

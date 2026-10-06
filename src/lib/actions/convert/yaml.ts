@@ -5,6 +5,7 @@ import { parse as parseYaml } from 'yaml';
 import { prettifyCode } from './prettify';
 import { jsonToJsDoc, jsonToJsonSchema, jsonToToml, jsonToTypescript } from './json';
 import { safeAction } from '../safe-action';
+import { isActionError } from '@/lib/action-error';
 
 export async function yamlToJson(input: string) {
   return safeAction(async () => {
@@ -17,15 +18,11 @@ export async function yamlToJsonSchema(input: string, options: Record<string, un
   return safeAction(async () => {
     const code = await yamlToJson(input);
 
-    if (typeof code === 'object' && 'error' in code) {
-      throw new Error(code.message);
-    }
+    if (isActionError(code)) return code;
 
     const schema = await jsonToJsonSchema(code, options);
 
-    if (typeof schema === 'object' && 'error' in schema) {
-      throw new Error(schema.message);
-    }
+    if (isActionError(schema)) return schema;
 
     return prettifyCode(schema, undefined, 'json');
   });
@@ -35,9 +32,7 @@ export async function yamlToToml(input: string) {
   return safeAction(async () => {
     const json = await yamlToJson(input);
 
-    if (typeof json === 'object' && 'error' in json) {
-      throw new Error(json.message);
-    }
+    if (isActionError(json)) return json;
 
     return jsonToToml(json);
   });
@@ -47,9 +42,7 @@ export async function yamlToTypescript(input: string, options: Record<string, un
   return safeAction(async () => {
     const json = await yamlToJson(input);
 
-    if (typeof json === 'object' && 'error' in json) {
-      throw new Error(json.message);
-    }
+    if (isActionError(json)) return json;
 
     return jsonToTypescript(json, options);
   });
@@ -59,9 +52,7 @@ export async function yamlToJsDoc(input: string, options: Record<string, unknown
   return safeAction(async () => {
     const json = await yamlToJson(input);
 
-    if (typeof json === 'object' && 'error' in json) {
-      throw new Error(json.message);
-    }
+    if (isActionError(json)) return json;
 
     return jsonToJsDoc(json, options);
   });

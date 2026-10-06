@@ -1,6 +1,26 @@
 import { CodeSplitView } from '@/components/code-split-view/code-split-view';
+import { FaqSection } from '@/components/faq-section';
+import type { FaqItem } from '@/components/faq-section';
 import { htmlToMarkdown } from '@/lib/actions/convert/html';
 import { createConvertOptions } from '@/lib/create-convert-options';
+
+const FAQS = [
+  {
+    title: 'When should I enable table column tracking?',
+    description:
+      'Enable it when converting tables so the converter can track table columns while producing Markdown. It only affects table conversion and does not preserve HTML styling or layout.',
+  },
+  {
+    title: 'What metadata is included in the output?',
+    description:
+      'Choose No metadata to omit head metadata, Basic for title, description, and keywords, or Extended for Open Graph, Twitter card, and JSON-LD metadata. The converter reads metadata from the HTML you provide. It does not fetch the original webpage.',
+  },
+  {
+    title: 'Why is my HTML not converted?',
+    description:
+      'The input needs non-empty body content. A head-only document or an empty body has nothing to convert. The result is Markdown content, so HTML-specific styling and layout are not reproduced.',
+  },
+] satisfies readonly FaqItem[];
 
 const OPTIONS = createConvertOptions([
   {
@@ -33,11 +53,12 @@ const OPTIONS = createConvertOptions([
 
 export default function HtmlToMarkdown() {
   return (
-    <CodeSplitView
-      input={{
-        label: 'HTML',
-        language: 'html',
-        defaultValue: `<!DOCTYPE html>
+    <>
+      <CodeSplitView
+        input={{
+          label: 'HTML',
+          language: 'html',
+          defaultValue: `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -106,7 +127,7 @@ export default function HtmlToMarkdown() {
     </div>
     <div>
         <h2>Key HTML Elements Used</h2>
-        
+
         <table>
             <thead>
                 <tr>
@@ -141,14 +162,16 @@ export default function HtmlToMarkdown() {
     </div>
 </body>
 </html>`,
-      }}
-      output={{
-        label: 'Markdown',
-        language: 'markdown',
-        sourceUrl: 'https://www.npmjs.com/package/dom-to-semantic-markdown',
-      }}
-      converter={htmlToMarkdown}
-      options={OPTIONS}
-    />
+        }}
+        output={{
+          label: 'Markdown',
+          language: 'markdown',
+          sourceUrl: 'https://www.npmjs.com/package/dom-to-semantic-markdown',
+        }}
+        converter={htmlToMarkdown}
+        options={OPTIONS}
+      />
+      <FaqSection items={FAQS} />
+    </>
   );
 }

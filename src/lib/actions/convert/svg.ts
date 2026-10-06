@@ -5,12 +5,14 @@ import { type ConfigPlugin, type Config as SvgrConfig, transform } from '@svgr/c
 import jsxPlugin from '@svgr/plugin-jsx';
 import svgoPlugin from '@svgr/plugin-svgo';
 import { prettifyCode } from './prettify';
-import { type Config as SvgoConfig } from 'svgo';
 import isSvg from 'is-svg';
 import { safeAction } from '../safe-action';
+import { ActionValidationError } from '@/lib/action-error';
+
+type SvgoConfig = NonNullable<SvgrConfig['svgoConfig']>;
 
 function validateInput(input: string) {
-  if (!isSvg(input)) throw new Error('Input is not a valid SVG');
+  if (!isSvg(input)) throw new ActionValidationError('INVALID_SVG');
 }
 
 function getConfig(options: Record<string, unknown>): SvgrConfig {

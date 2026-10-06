@@ -1,7 +1,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import React, { useState } from 'react';
+import { Clipboard, FileText, Image as ImageIcon, Info, Trash2, Upload } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
   type DropzoneProps as _DropzoneProps,
@@ -10,99 +11,48 @@ import {
 
 export type DropzoneState = _DropzoneState;
 
-export interface DropzoneProps extends Omit<_DropzoneProps, 'children'> {
+export type DropzoneProps = Omit<_DropzoneProps, 'children'> & {
   containerClassName?: string;
   dropZoneClassName?: string;
   children?: (dropzone: DropzoneState) => React.ReactNode;
+  enableImageClipboard?: boolean;
+  dropZoneDescription?: React.ReactNode;
+  showClipboardGuidance?: boolean;
   showFilesList?: boolean;
   showErrorMessage?: boolean;
-}
+  testId?: string;
+  inputTestId?: string;
+};
 
-const Upload = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={cn('lucide lucide-upload', className)}
-  >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="17 8 12 3 7 8" />
-    <line x1="12" x2="12" y1="3" y2="15" />
-  </svg>
-);
+const dispatchFilesAsDrop = (root: HTMLElement | null, files: File[]) => {
+  if (!root || typeof DataTransfer === 'undefined' || typeof DragEvent === 'undefined')
+    return false;
 
-const PDF = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={cn('lucide lucide-file-text', className)}
-  >
-    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-    <path d="M10 9H8" />
-    <path d="M16 13H8" />
-    <path d="M16 17H8" />
-  </svg>
-);
-
-const ImageIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={cn('lucide lucide-image', className)}
-  >
-    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-    <circle cx="9" cy="9" r="2" />
-    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-  </svg>
-);
-
-const Trash = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={cn('lucide lucide-trash', className)}
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-  </svg>
-);
+  const dataTransfer = new DataTransfer();
+  files.forEach((file) => dataTransfer.items.add(file));
+  root.dispatchEvent(
+    new DragEvent('drop', {
+      bubbles: true,
+      cancelable: true,
+      dataTransfer,
+    })
+  );
+  return true;
+};
 
 export const FileUpload = ({
   containerClassName,
   dropZoneClassName,
   children,
+  enableImageClipboard = false,
+  showClipboardGuidance = true,
   showFilesList = true,
+  dropZoneDescription,
+  testId,
+  inputTestId,
   ...props
 }: DropzoneProps) => {
+  const [clipboardStatus, setClipboardStatus] = useState<string>();
   const dropzone = useDropzone({
     ...props,
     onDrop(acceptedFiles, fileRejections, event) {
@@ -121,6 +71,87 @@ export const FileUpload = ({
     },
   });
 
+  useEffect(() => {
+    if (!enableImageClipboard || props.disabled) return;
+
+    const handlePagePaste = (event: ClipboardEvent) => {
+      const root = dropzone.rootRef.current;
+      if (!root || root.contains(event.target as Node)) return;
+
+      const clipboardData = event.clipboardData;
+      const imageFiles = Array.from(clipboardData?.files ?? []).filter((file) =>
+        file.type.startsWith('image/')
+      );
+      const itemFiles = Array.from(clipboardData?.items ?? [])
+        .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+        .map((item) => item.getAsFile())
+        .filter((file): file is File => file !== null);
+      const files = imageFiles.length ? imageFiles : itemFiles;
+
+      if (!files.length || !dispatchFilesAsDrop(root, files)) return;
+
+      event.preventDefault();
+      setClipboardStatus('Clipboard image sent to upload validation.');
+    };
+
+    window.addEventListener('paste', handlePagePaste);
+    return () => window.removeEventListener('paste', handlePagePaste);
+  }, [dropzone.rootRef, enableImageClipboard, props.disabled]);
+
+  const pasteClipboardImages = async () => {
+    setClipboardStatus('Checking for an image in the clipboard…');
+
+    if (!navigator.clipboard?.read) {
+      setClipboardStatus('Clipboard access is unavailable in this browser.');
+      return;
+    }
+
+    let clipboardItems: ClipboardItems;
+    try {
+      clipboardItems = await navigator.clipboard.read();
+    } catch {
+      setClipboardStatus('Clipboard access was denied or unavailable. Paste with Ctrl+V instead.');
+      return;
+    }
+
+    try {
+      const clipboardFiles: File[] = [];
+
+      for (const item of clipboardItems) {
+        const type = item.types.find((clipboardType) => clipboardType.startsWith('image/'));
+        if (!type) continue;
+
+        const blob = await item.getType(type);
+        const subtype = type
+          .slice('image/'.length)
+          .split('+')[0]
+          .replace(/[^a-z0-9]/gi, '');
+        const extension = subtype === 'jpeg' ? 'jpg' : subtype || 'img';
+        clipboardFiles.push(
+          new File([blob], `clipboard-image-${clipboardFiles.length + 1}.${extension}`, {
+            type,
+          })
+        );
+      }
+
+      if (!clipboardFiles.length) {
+        setClipboardStatus('No image found in the clipboard. Paste with Ctrl/Cmd+V instead.');
+        return;
+      }
+
+      if (!dispatchFilesAsDrop(dropzone.rootRef.current, clipboardFiles)) {
+        setClipboardStatus(
+          'Clipboard images are not supported here. Paste with Ctrl/Cmd+V instead.'
+        );
+        return;
+      }
+
+      setClipboardStatus('Clipboard image sent to upload validation.');
+    } catch {
+      setClipboardStatus('Could not paste the clipboard image. Paste with Ctrl+V instead.');
+    }
+  };
+
   const [filesUploaded, setFilesUploaded] = useState<File[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>();
 
@@ -132,32 +163,90 @@ export const FileUpload = ({
   };
 
   return (
-    <div className={cn('flex flex-col gap-2', containerClassName)}>
+    <div className={cn('flex flex-col gap-4', containerClassName)}>
       <div
         {...dropzone.getRootProps()}
+        data-testid={testId}
         className={cn(
-          'flex justify-center items-center w-full h-32 border-dashed border-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-all select-none cursor-pointer',
+          'group flex w-full min-h-32 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-muted/20 px-6 py-8 text-center transition-colors hover:border-primary/50 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none cursor-pointer',
+          dropzone.isDragAccept && 'border-primary bg-primary/5',
+          props.disabled && 'cursor-not-allowed opacity-60 hover:border-border hover:bg-muted/20',
           dropZoneClassName
         )}
       >
-        <input {...dropzone.getInputProps()} />
+        <input {...dropzone.getInputProps()} data-testid={inputTestId} />
         {children ? (
           children(dropzone)
         ) : dropzone.isDragAccept ? (
-          <div className="text-sm font-medium">Drop your files here!</div>
+          <div data-testid="file-upload-prompt" className="text-base font-medium">
+            Drop your files here
+          </div>
         ) : (
-          <div className="flex items-center flex-col gap-1.5">
-            <div className="flex items-center flex-row gap-0.5 text-sm font-medium">
-              <Upload className="mr-2 h-4 w-4" /> Upload files
-            </div>
-            {props.maxSize && (
-              <div className="text-xs text-gray-400 font-medium">
-                Max. file size: {(props.maxSize / (1024 * 1024)).toFixed(2)} MB
-              </div>
-            )}
+          <div data-testid="file-upload-prompt" className="flex flex-col items-center gap-3">
+            <span
+              data-testid="file-upload-icon"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary"
+            >
+              <Upload aria-hidden="true" className="h-5 w-5" />
+            </span>
+            <span className="flex flex-col items-center gap-1">
+              <span className="text-lg font-medium">Upload files</span>
+              {props.maxSize && (
+                <span data-testid="file-upload-max-size" className="text-sm text-muted-foreground">
+                  Max. file size: {(props.maxSize / (1024 * 1024)).toFixed(2)} MB
+                </span>
+              )}
+            </span>
           </div>
         )}
       </div>
+      {dropZoneDescription && (
+        <div
+          data-testid="file-upload-description"
+          className="text-center text-xs text-muted-foreground"
+        >
+          {dropZoneDescription}
+        </div>
+      )}
+      {enableImageClipboard && (
+        <>
+          {showClipboardGuidance && (
+            <>
+              <div
+                role="note"
+                data-testid="file-upload-clipboard-info"
+                className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground"
+              >
+                <Info aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>
+                  Paste an image anywhere on this page with Ctrl/Cmd+V, or check it here. The
+                  clipboard is only read after you click the button, and your browser may ask you to
+                  grant clipboard permission. Images stay in your browser.
+                </span>
+              </div>
+              <button
+                type="button"
+                data-testid="file-upload-paste-button"
+                className="inline-flex items-center gap-2 self-center text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={props.disabled}
+                onClick={pasteClipboardImages}
+              >
+                <Clipboard aria-hidden="true" className="h-4 w-4" />
+                Check and paste image
+              </button>
+            </>
+          )}
+          {clipboardStatus && (
+            <span
+              data-testid="file-upload-clipboard-status"
+              className="self-center text-xs text-muted-foreground"
+              aria-live="polite"
+            >
+              {clipboardStatus}
+            </span>
+          )}
+        </>
+      )}
       {errorMessage && <span className="text-xs text-red-600 mt-3">{errorMessage}</span>}
       {showFilesList && filesUploaded.length > 0 && (
         <div
@@ -167,30 +256,35 @@ export const FileUpload = ({
             {filesUploaded.map((fileUploaded, index) => (
               <div
                 key={index}
-                className="flex justify-between items-center flex-row w-full h-16 mt-2 px-4 border-solid border-2 rounded-lg shadow-sm"
+                className="mt-2 flex min-h-16 w-full flex-row items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
               >
-                <div className="flex items-center flex-row gap-4 h-full">
-                  {fileUploaded.type === 'application/pdf' ? (
-                    <PDF className="text-rose-700 w-6 h-6" />
-                  ) : (
-                    <ImageIcon className="text-rose-700 w-6 h-6" />
-                  )}
-                  <div className="flex flex-col gap-0">
-                    <div className="text-[0.85rem] font-medium leading-snug">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    {fileUploaded.type === 'application/pdf' ? (
+                      <FileText aria-hidden="true" className="h-5 w-5 text-primary" />
+                    ) : (
+                      <ImageIcon aria-hidden="true" className="h-5 w-5 text-primary" />
+                    )}
+                  </span>
+                  <div className="flex min-w-0 flex-col">
+                    <div className="truncate text-sm font-medium leading-snug">
                       {fileUploaded.name.split('.').slice(0, -1).join('.').substring(0, 30)}
                     </div>
-                    <div className="text-[0.7rem] text-gray-500 leading-tight">
+                    <div className="text-xs text-muted-foreground leading-tight">
                       .{fileUploaded.name.split('.').pop()} •{' '}
                       {(fileUploaded.size / (1024 * 1024)).toFixed(2)} MB
                     </div>
                   </div>
                 </div>
-                <div
-                  className="p-2 rounded-full border-solid border-2 shadow-sm hover:bg-accent transition-all select-none cursor-pointer"
+                <button
+                  type="button"
+                  aria-label={`Remove ${fileUploaded.name}`}
+                  data-testid={`file-upload-remove-${index}`}
+                  className="ml-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   onClick={() => deleteUploadedFile(index)}
                 >
-                  <Trash className="w-4 h-4" />
-                </div>
+                  <Trash2 aria-hidden="true" className="h-4 w-4" />
+                </button>
               </div>
             ))}
           </div>

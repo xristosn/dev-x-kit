@@ -1,0 +1,44 @@
+{
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.compactFolders": false,
+  "explorer.fileNesting.patterns": {
+    ".agent": ".agent, .claude, .cline, .codebuddy, .codex, .commandcode, .continue, .crush, .cursor, .factory, .gemini, .goose, .junie, .kilocode, .kiro, .kode, .mcpjam, .mux, .neovate, .opencode, .openhands, .pi, .pochi, .qoder, .qwen, .roo, .trae, .windsurf, .zencoder",
+    "AGENTS.md": ".clinerules, .cursorrules, .replit.md, .windsurfrules, AGENT.md, CLAUDE.local.md, CLAUDE.md, GEMINI.md",
+    "*.ts": "$(capture).test.ts, $(capture).test.tsx, $(capture).d.ts",
+    "*.tsx": "$(capture).test.ts, $(capture).test.tsx, $(capture).stories.tsx",
+    "next.config.ts": "next-env.d.ts, .next/, postcss.config.mjs",
+    "vitest.config.mts": "vitest.setup.ts, __mocks__"
+  },
+  "files.eol": "\r\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/coverage": true
+  },
+  "files.watcherExclude": {
+    "**/.next/**": true,
+    "**/node_modules/**": true
+  },
+  "editor.quickSuggestions": {
+    "strings": "on" // completions inside className="..." strings
+  },
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    ".*Class$" // picks up cn(...)/cva outputs via xClass props
+  ],
+  "files.associations": {
+    "*.css": "tailwindcss" // your globals.css @theme inline gets proper highlighting
+  },
+  "editor.linkedEditing": true
+}

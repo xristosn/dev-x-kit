@@ -5,9 +5,9 @@ import { GradientValue } from '@/types/gradient';
 import { useEffect, useRef } from 'react';
 import { getGradientColor } from './utils';
 
-export interface GradientPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
+export type GradientPreviewProps = React.HTMLAttributes<HTMLDivElement> & {
   value: GradientValue;
-}
+};
 
 export const GradientPreview: React.FC<GradientPreviewProps> = ({ className, value, ...rest }) => {
   const gradientRef = useRef<HTMLDivElement>(null);

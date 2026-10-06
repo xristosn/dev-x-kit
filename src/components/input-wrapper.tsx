@@ -1,13 +1,13 @@
 import { cn } from '@/lib/utils';
-import { Label } from './ui/label';
 import { CopyButton } from './ui/copy-button';
+import { Label } from './ui/label';
 
-export interface InputWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
+export type InputWrapperProps = React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode;
   label?: string;
   helperText?: string;
   copyValue?: string | number;
-}
+};
 
 export const InputWrapper: React.FC<InputWrapperProps> = ({
   children,

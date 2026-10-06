@@ -16,14 +16,14 @@ import { Skeleton } from '../ui/skeleton';
 import { useWebStorage } from '@/hooks/use-web-storage';
 import { uniq } from 'lodash-es';
 
-export interface ColorPopoverProps {
+export type ColorPopoverProps = {
   value: IColor;
   setValue: React.Dispatch<React.SetStateAction<IColor>>;
   id?: string;
   label?: string;
   disableAlpha?: boolean;
   defaultMode?: ColorMode;
-}
+};
 
 export const ColorPopover: React.FC<ColorPopoverProps> = ({
   value,
@@ -58,19 +58,27 @@ export const ColorPopover: React.FC<ColorPopoverProps> = ({
 
   return (
     <div className="grid w-full items-center gap-2 not-disabled:cursor-pointer">
-      {label && <Label htmlFor={triggerId || `color-popover-${id}`}>{label}</Label>}
+      {label && (
+        <Label data-testid="color-popover-label" htmlFor={triggerId || `color-popover-${id}`}>
+          {label}
+        </Label>
+      )}
 
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger>
           <div className="relative">
-            <ClientOnly fallback={<Skeleton className="size-6" />}>
+            <ClientOnly
+              fallback={<Skeleton className="absolute top-1.5 left-2 size-6 rounded-sm" />}
+            >
               <div
+                data-testid="color-popover-preview"
                 className="absolute top-1.5 left-2 size-6 rounded-sm"
                 style={{ backgroundColor: value.hex }}
               />
             </ClientOnly>
 
             <Input
+              data-testid="color-popover-input"
               id={triggerId || `color-popover-${id}`}
               type="text"
               readOnly
@@ -80,7 +88,10 @@ export const ColorPopover: React.FC<ColorPopoverProps> = ({
           </div>
         </PopoverTrigger>
 
-        <PopoverContent className="flex flex-col gap-2 w-104 max-w-dvw">
+        <PopoverContent
+          data-testid="color-popover-content"
+          className="flex flex-col gap-2 w-104 max-w-dvw"
+        >
           <ColorPicker
             color={value}
             onChange={setValue}
@@ -91,12 +102,12 @@ export const ColorPopover: React.FC<ColorPopoverProps> = ({
 
           <div className="flex flex-wrap gap-1">
             <Select value={colorMode as string} onValueChange={(v) => setColorMode(v as ColorMode)}>
-              <SelectTrigger className="w-20 flex-1">
+              <SelectTrigger data-testid="color-mode-select" className="w-20 flex-1">
                 <SelectValue placeholder="Color Mode" />
               </SelectTrigger>
               <SelectContent>
                 {['hex', 'rgb', 'hsv'].map((mode) => (
-                  <SelectItem key={mode} value={mode}>
+                  <SelectItem data-testid={`color-mode-${mode}`} key={mode} value={mode}>
                     {mode.toUpperCase()}
                   </SelectItem>
                 ))}
@@ -118,10 +129,11 @@ export const ColorPopover: React.FC<ColorPopoverProps> = ({
             <div className="flex flex-col gap-2">
               <p className="text-sm text-muted-foreground">Recent Colors:</p>
 
-              <div className="flex flex-wrap gap-2">
+              <div data-testid="color-popover-recent-colors" className="flex flex-wrap gap-2">
                 {recentColors.map((c) => (
                   <button
                     key={c}
+                    data-testid={`color-popover-recent-color-${c.replace('#', '').toLowerCase()}`}
                     type="button"
                     className="size-5 rounded-xs cursor-pointer shadow-xs border"
                     style={{ backgroundColor: c }}

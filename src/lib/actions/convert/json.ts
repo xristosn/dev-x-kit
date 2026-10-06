@@ -1,41 +1,53 @@
 'use server';
 
-import 'server-only';
+import { stringify as stringifyJsonToToml } from '@iarna/toml';
+import { encode as encodeJsonToToon } from '@toon-format/toon';
 import {
-  quicktype,
-  jsonInputForTargetLanguage,
-  InputData,
-  JSONSchemaTargetLanguage,
-  type TargetLanguage,
   CSharpTargetLanguage,
+  DartTargetLanguage,
+  ElixirTargetLanguage,
+  FlowTargetLanguage,
+  GoTargetLanguage,
+  InputData,
   JavaScriptPropTypesTargetLanguage,
+  jsonInputForTargetLanguage,
+  JSONSchemaTargetLanguage,
   PythonTargetLanguage,
+  quicktype,
   RustTargetLanguage,
   TypeScriptTargetLanguage,
   TypeScriptZodTargetLanguage,
-  GoTargetLanguage,
-  DartTargetLanguage,
-  FlowTargetLanguage,
-  ElixirTargetLanguage,
+  type TargetLanguage,
 } from 'quicktype-core';
+import 'server-only';
 // @ts-expect-error No types
 import { jsonToSchema } from '@walmartlabs/json-to-simple-graphql-schema/lib';
 import { JsonToJsdocConverter } from 'json-to-jsdoc-converter';
 // @ts-expect-error No types
 import generateSchema from 'generate-schema';
-import { stringify as stringifyJsonToToml } from '@iarna/toml';
 import { stringify as stringifyYaml } from 'yaml';
-import { encode as encodeJsonToToon } from '@toon-format/toon';
-import { prettifyCode } from './prettify';
 import { safeAction } from '../safe-action';
+import { ActionValidationError, type ActionErrorLocation } from '@/lib/action-error';
+import { prettifyCode } from './prettify';
+
+function getJsonErrorLocation(input: string, error: unknown): ActionErrorLocation | undefined {
+  if (!(error instanceof Error)) return undefined;
+
+  const match = error.message.match(/position\s+(\d+)/i);
+  if (!match) return undefined;
+
+  const offset = Number(match[1]);
+  if (!Number.isSafeInteger(offset) || offset < 0 || offset > input.length) return undefined;
+
+  const lines = input.slice(0, offset).split(/\r\n|\r|\n/);
+  return { line: lines.length, column: lines[lines.length - 1].length + 1 };
+}
 
 function validateInput(input: string) {
   try {
-    JSON.parse(input);
-  } catch (err) {
-    throw new Error(`Input is not a valid JSON. ${(err as Error)?.message || err} `, {
-      cause: err,
-    });
+    return JSON.parse(input);
+  } catch (error) {
+    throw new ActionValidationError('INVALID_JSON', getJsonErrorLocation(input, error));
   }
 }
 
@@ -170,7 +182,19 @@ export async function jsonToElixir(input: string, options: Record<string, unknow
 
 export async function jsonToGraphQl(input: string, options: Record<string, unknown>) {
   return safeAction(async () => {
-    validateInput(input);
+    // The converter strips non-word characters before using JSON keys as lodash.set
+    // path segments. Reject dangerous keys after applying the same normalization.
+    JSON.parse(input, (key, value) => {
+      const normalizedKey = key.replace(/[\W]+/g, '');
+      if (
+        normalizedKey === '__proto__' ||
+        normalizedKey === 'constructor' ||
+        normalizedKey === 'prototype'
+      ) {
+        throw new ActionValidationError('UNSAFE_JSON_KEY');
+      }
+      return value;
+    });
 
     const schema = jsonToSchema({
       jsonInput: input,
@@ -194,51 +218,39 @@ export async function jsonToJsDoc(input: string, options: Record<string, unknown
 
 export async function jsonToMySql(input: string, options: Record<string, unknown>) {
   return safeAction(async () => {
-    validateInput(input);
-
-    return generateSchema.mysql(options.tableName || 'Root', JSON.parse(input));
+    return generateSchema.mysql(options.tableName || 'Root', validateInput(input));
   });
 }
 
 export async function jsonToMongooseSchema(input: string) {
   return safeAction(async () => {
-    validateInput(input);
-
-    return JSON.stringify(generateSchema.mongoose(JSON.parse(input)), null, 2);
+    return JSON.stringify(generateSchema.mongoose(validateInput(input)), null, 2);
   });
 }
 
 export async function jsonToBigQuery(input: string) {
   return safeAction(async () => {
-    validateInput(input);
-
-    return JSON.stringify(generateSchema.bigquery(JSON.parse(input)), null, 2);
+    return JSON.stringify(generateSchema.bigquery(validateInput(input)), null, 2);
   });
 }
 
 export async function jsonToToml(input: string) {
   return safeAction(async () => {
-    validateInput(input);
-
-    return stringifyJsonToToml(JSON.parse(input));
+    return stringifyJsonToToml(validateInput(input));
   });
 }
 
 export async function jsonToYaml(input: string) {
   return safeAction(async () => {
-    validateInput(input);
-
-    return prettifyCode(stringifyYaml(JSON.parse(input)), undefined, 'yaml');
+    return prettifyCode(stringifyYaml(validateInput(input)), undefined, 'yaml');
   });
 }
 
 export async function jsonToToon(input: string, options: Record<string, unknown>) {
   return safeAction(async () => {
-    validateInput(input);
-
     const delimeter = { comma: ',', tab: '\n', pipe: '|' };
 
-    return encodeJsonToToon(JSON.parse(input), {
+    return encodeJsonToToon(validateInput(input), {
       ...options,
       delimiter: delimeter[options.delimiter as 'comma'] as ',',
     });

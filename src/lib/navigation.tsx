@@ -1,26 +1,56 @@
 import {
   Baseline,
+  Crop,
+  Database,
+  FileBraces,
+  FileDown,
+  FileUp,
+  Fingerprint,
+  Image,
+  Link2,
+  Maximize,
   PaintBucket,
   Palette,
-  Rainbow,
-  Triangle,
-  SquaresUnite,
-  ToolCase,
-  Link2,
-  FileUp,
   QrCode,
+  Rainbow,
+  Shield,
+  SquaresUnite,
+  SwatchBook,
+  ToolCase,
+  Triangle,
   Type,
   WholeWord,
-  Fingerprint,
-  FileDown,
-  FileBraces,
-  Database,
-  Image,
-  Crop,
-  Maximize,
-  SwatchBook,
 } from 'lucide-react';
-import { PiPlaceholder, PiImagesSquareBold } from 'react-icons/pi';
+import { BsShadows } from 'react-icons/bs';
+import { LuFileJson2, LuImageDown } from 'react-icons/lu';
+import { PiImagesSquareBold, PiPlaceholder } from 'react-icons/pi';
+import {
+  SiCss,
+  SiDart,
+  SiElixir,
+  SiGooglebigquery,
+  SiGraphql,
+  SiHtml5,
+  SiJavascript,
+  SiJson,
+  SiJss,
+  SiMarkdown,
+  SiMongoose,
+  SiMysql,
+  SiPhp,
+  SiPython,
+  SiReact,
+  SiReadthedocs,
+  SiRust,
+  SiSass,
+  SiSharp,
+  SiSvg,
+  SiTailwindcss,
+  SiToml,
+  SiTypescript,
+  SiYaml,
+  SiZod,
+} from 'react-icons/si';
 import {
   TbBackground,
   TbBrandGolang,
@@ -28,41 +58,16 @@ import {
   TbNumber64Small,
   TbReplace,
 } from 'react-icons/tb';
-import { LuFileJson2, LuImageDown } from 'react-icons/lu';
-import {
-  SiElixir,
-  SiGooglebigquery,
-  SiJson,
-  SiMongoose,
-  SiToml,
-  SiTypescript,
-  SiYaml,
-  SiZod,
-  SiReact,
-  SiRust,
-  SiPython,
-  SiDart,
-  SiSharp,
-  SiReadthedocs,
-  SiGraphql,
-  SiMysql,
-  SiCss3,
-  SiJavascript,
-  SiHtml5,
-  SiMarkdown,
-  SiJss,
-  SiSvg,
-  SiSass,
-  SiPhp,
-  SiTailwindcss,
-} from 'react-icons/si';
 import { NavigationManager } from './utils';
-import { BsShadows } from 'react-icons/bs';
 
 export const NAVIGATION = new NavigationManager([
   {
     label: 'Color Tools',
+    path: '/color-tools',
     icon: <Palette />,
+    categories: ['Colors'],
+    summary:
+      'Browse tools for selecting colors, editing gradients, checking contrast, and generating palettes.',
     items: [
       {
         label: 'Color Picker',
@@ -71,7 +76,7 @@ export const NAVIGATION = new NavigationManager([
         icon: <PaintBucket />,
         tags: ['Color Shades'],
         summary:
-          'Selects, analyzes (HEX, RGB, HSL), and generates color palettes. Quickly creates lighter/darker shades, desaturated versions, and complementary colors.',
+          'Pick a color, inspect its HEX, RGB, or HSL values, and generate lighter, darker, desaturated, or complementary colors.',
       },
       {
         label: 'Gradient Editor',
@@ -86,7 +91,7 @@ export const NAVIGATION = new NavigationManager([
           'Gradient to webp',
         ],
         summary:
-          'Visual tool to create and preview complex CSS linear and radial gradients. Export options include ready-to-use CSS code or an image file (PNG/JPEG/WEBP)',
+          'Create and preview linear or radial CSS gradients, then export the result as CSS or a PNG, JPEG, or WebP image.',
       },
       {
         label: 'Contrast Checker',
@@ -95,7 +100,7 @@ export const NAVIGATION = new NavigationManager([
         icon: <Baseline />,
         sourceUrl: 'https://www.npmjs.com/package/tinycolor2',
         summary:
-          'Verifies foreground/background color combinations meet WCAG accessibility standards (AA/AAA). Ensures text legibility for all users.',
+          'Check foreground and background color pairs against WCAG AA and AAA contrast requirements.',
       },
       {
         label: 'Palette Generator',
@@ -103,14 +108,16 @@ export const NAVIGATION = new NavigationManager([
         path: '/color-tools/palette-generator',
         icon: <SwatchBook />,
         tags: ['Color Palette', 'Chakra UI v3', 'CSS Palette'],
-        summary: `Create, preview, and export color palettes for light & dark modes to CSS or Chakra UI.`,
+        summary: `Build color palettes for light and dark themes, preview them, and export CSS or Chakra UI tokens.`,
       },
     ],
   },
 
   {
     label: 'CSS Tools',
-    icon: <SiCss3 />,
+    path: '/css-tools',
+    icon: <SiCss />,
+    categories: ['CSS'],
     items: [
       {
         label: 'CSS Triangle',
@@ -118,7 +125,7 @@ export const NAVIGATION = new NavigationManager([
         fullName: 'CSS Triangle Generator',
         icon: <Triangle />,
         summary:
-          'Visually creates triangles and arrows using pure CSS borders. Generates lightweight code for tooltips and UI accents, avoiding image files.',
+          'Generate triangles and arrows from CSS borders, preview their shape, and use the CSS in tooltips or other interface accents.',
       },
       {
         label: 'CSS Unit Converter',
@@ -127,7 +134,7 @@ export const NAVIGATION = new NavigationManager([
         tags: ['px to rem', 'rem to px', 'px to em', 'em to px', 'rem to em', 'em to rem'],
         sourceUrl: 'https://github.com/ArthurArakelyan/css-unit-converter-js',
         summary:
-          'Converts CSS measurement units (px, rem, em, vw, vh, etc.) for responsive web design, streamlining calculations.',
+          'Convert between CSS units such as px, rem, em, vw, and vh for responsive layouts.',
       },
       {
         label: 'Smooth Shadow Editor',
@@ -136,7 +143,7 @@ export const NAVIGATION = new NavigationManager([
         tags: ['Smooth Shadow Generator'],
         icon: <BsShadows />,
         summary:
-          'Create layered, smooth CSS box-shadows with live preview, edit color, blur, opacity, distance and layers with Smooth Shadows accurate output.',
+          'Build layered CSS box-shadows and adjust color, blur, opacity, distance, and layers while previewing the result.',
       },
       {
         label: 'Background Pattern Generator',
@@ -144,456 +151,511 @@ export const NAVIGATION = new NavigationManager([
         fullName: 'CSS Background Pattern Generator',
         icon: <TbBackground />,
         summary:
-          'Generate intricate and unique CSS background patterns with a live preview. Customize colors, shapes, and sizes to create stunning and lightweight designs for any web project.',
+          'Create CSS background patterns by adjusting colors, shapes, and sizes, with a live preview as you work.',
       },
     ],
   },
 
   {
     label: 'Convert',
+    path: '/convert',
     icon: <TbReplace />,
     items: [
       {
         label: 'HTML',
+        path: '/convert/html',
         fullName: 'Convert HTML',
         icon: <SiHtml5 />,
+        categories: ['Code Converters'],
         items: [
           {
             label: 'to JSX',
             fullName: 'Convert HTML to JSX',
+            pageTitle: 'HTML to JSX',
             path: '/convert/html/jsx',
             icon: <TbFileTypeJsx />,
-            summary: `Real-time conversion of complex HTML structures into clean, validated JSX format with instant results.`,
+            summary: `Convert HTML markup to JSX for use in React components.`,
           },
           {
             label: 'to Markdown',
             fullName: 'Convert HTML to Markdown',
+            pageTitle: 'HTML to Markdown',
             path: '/convert/html/markdown',
             icon: <SiMarkdown />,
-            summary: `Real-time conversion of complex HTML structures into clean, validated Markdown format with instant results.`,
+            summary: `Turn HTML content into Markdown while keeping its document structure readable.`,
           },
         ],
       },
       {
         label: 'SVG',
+        path: '/convert/svg',
         fullName: 'Convert SVG',
         icon: <SiSvg />,
+        categories: ['Code Converters'],
         items: [
           {
             label: 'to Optimized SVG',
             fullName: 'Convert SVG to Optimized SVG',
+            pageTitle: 'SVG to Optimized SVG',
             path: '/convert/svg/optimize',
             icon: <SiSvg />,
-            summary: `Quickly optimize your SVG files by removing unnecessary metadata and code comments to significantly reduce file size without losing visual quality.`,
+            summary: `Optimize SVG markup by removing unnecessary metadata and comments to reduce file size.`,
           },
           {
             label: 'to React',
             fullName: 'Convert SVG to React',
+            pageTitle: 'SVG to React',
             path: '/convert/svg/react',
             icon: <SiReact />,
-            summary: `Convert raw SVG markup directly into a functional, reusable React component (JSX code) ready for immediate use in your projects, improving performance.`,
+            summary: `Convert SVG markup into a reusable React component with JSX-compatible attributes.`,
           },
           {
             label: 'to Data URI',
             fullName: 'Convert SVG to Data URI',
+            pageTitle: 'SVG to Data URI',
             path: '/convert/svg/data-uri',
-            summary: `Instantly convert your SVG files into a base64 encoded Data URI string, enabling direct use in CSS backgrounds or HTML attributes to save network requests.`,
+            summary: `Encode SVG markup as a Base64 data URI for use in CSS backgrounds or HTML attributes.`,
             icon: <TbNumber64Small />,
           },
         ],
       },
       {
         label: 'JSON',
+        path: '/convert/json',
         fullName: 'Convert JSON',
         icon: <LuFileJson2 />,
+        categories: ['Data Converters'],
         items: [
           {
             label: 'to JSON Schema',
             fullName: 'Convert JSON to JSON Schema',
+            pageTitle: 'JSON to JSON Schema',
             path: '/convert/json/json-schema',
             icon: <SiJson />,
             summary:
-              'Automatically generate a comprehensive JSON Schema definition from any provided JSON object with instant results.',
+              'Create a JSON Schema from a sample JSON object to use as a starting point for data validation.',
           },
           {
-            label: 'to Typescript',
-            fullName: 'Convert JSON to Typescript',
+            label: 'to TypeScript',
+            fullName: 'Convert JSON to TypeScript',
+            pageTitle: 'JSON to TypeScript',
             path: '/convert/json/typescript',
             icon: <SiTypescript />,
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated Typescript interface format with instant results.',
+              'Generate TypeScript interfaces from a JSON sample, including types for its nested objects and arrays.',
           },
           {
             label: 'to Flow',
             fullName: 'Convert JSON to Flow',
+            pageTitle: 'JSON to Flow',
             path: '/convert/json/flow',
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated Flow.js format with instant results.',
+              'Generate Flow type definitions from a JSON sample, including types for nested values.',
           },
           {
             label: 'to JSDoc',
             fullName: 'Convert JSON to JSDoc',
+            pageTitle: 'JSON to JSDoc',
             path: '/convert/json/jsdoc',
             icon: <SiReadthedocs />,
             summary:
-              'Generate standardized JSDoc comments and structure definitions directly from your JSON data with instant accuracy.',
+              'Create JSDoc type definitions from a JSON sample to document the shape of its data.',
           },
           {
             label: 'to Zod',
             fullName: 'Convert JSON to Zod',
+            pageTitle: 'JSON to Zod',
             path: '/convert/json/zod',
             icon: <SiZod />,
-            summary:
-              'Quickly generate a Zod schema object from your JSON data structure, ideal for runtime validation.',
+            summary: 'Build a Zod schema from a JSON sample to use for runtime validation.',
           },
           {
             label: 'to React Prop Types',
             fullName: 'Convert JSON to React Prop Types',
+            pageTitle: 'JSON to React Prop Types',
             path: '/convert/json/react-prop-types',
             icon: <SiReact />,
             summary:
-              'Convert JSON objects into accurate React PropTypes definitions for component validation and type checking.',
+              'Generate React PropTypes definitions from a JSON object for validating component props.',
           },
           {
             label: 'to C#',
             fullName: 'Convert JSON to C#',
+            pageTitle: 'JSON to C#',
             path: '/convert/json/c-sharp',
             icon: <SiSharp />,
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated C# class format with instant results.',
+              'Generate C# classes from a JSON sample, with properties based on its data structure.',
           },
           {
             label: 'to Rust',
             fullName: 'Convert JSON to Rust',
+            pageTitle: 'JSON to Rust',
             path: '/convert/json/rust',
             icon: <SiRust />,
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated Rust struct format with instant results.',
+              'Generate Rust structs from a JSON sample, with fields based on its data structure.',
           },
           {
             label: 'to Python',
             fullName: 'Convert JSON to Python',
+            pageTitle: 'JSON to Python',
             path: '/convert/json/python',
             icon: <SiPython />,
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated Python class format with instant results.',
+              'Generate Python classes from a JSON sample, with attributes based on its data structure.',
           },
           {
             label: 'to Go',
             fullName: 'Convert JSON to Go',
+            pageTitle: 'JSON to Go',
             path: '/convert/json/go',
             icon: <TbBrandGolang />,
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated Go struct format with instant results.',
+              'Generate Go structs from a JSON sample, with fields based on its data structure.',
           },
           {
             label: 'to Dart',
             fullName: 'Convert JSON to Dart',
+            pageTitle: 'JSON to Dart',
             path: '/convert/json/dart',
             icon: <SiDart />,
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated Dart format with instant results.',
+              'Generate Dart types from a JSON sample, including nested objects and collection fields.',
           },
           {
             label: 'to Elixir',
             fullName: 'Convert JSON to Elixir',
+            pageTitle: 'JSON to Elixir',
             path: '/convert/json/elixir',
             icon: <SiElixir />,
-            summary:
-              'Real-time conversion of complex JSON structures into clean, validated Elixir format with instant results.',
+            summary: 'Generate Elixir data structures from a JSON sample.',
           },
           {
             label: 'to GraphQL',
             fullName: 'Convert JSON to GraphQL',
+            pageTitle: 'JSON to GraphQL',
             path: '/convert/json/graphql',
             icon: <SiGraphql />,
-            summary:
-              'Generate GraphQL schema definitions directly from JSON data structures with high fidelity and accuracy.',
+            summary: 'Build GraphQL schema definitions from a JSON sample and its nested data.',
           },
           {
             label: 'to MySQL',
             fullName: 'Convert JSON to MySQL',
+            pageTitle: 'JSON to MySQL',
             path: '/convert/json/mysql',
             icon: <SiMysql />,
-            summary:
-              'Generate MySQL CREATE TABLE statements and schema definitions directly from your JSON data for databases.',
+            summary: 'Create MySQL table definitions from a JSON sample.',
           },
           {
             label: 'to Mongoose Schema',
             fullName: 'Convert JSON to Mongoose Schema',
+            pageTitle: 'JSON to Mongoose Schema',
             path: '/convert/json/mongoose',
             icon: <SiMongoose />,
             summary:
-              'Transform JSON data structures directly into valid Mongoose Schema definitions for Node.js/MongoDB projects.',
+              'Generate a Mongoose schema from a JSON sample for use with Node.js and MongoDB.',
           },
           {
             label: 'to BigQuery',
             fullName: 'Convert JSON to BigQuery',
+            pageTitle: 'JSON to BigQuery',
             path: '/convert/json/bigquery',
             icon: <SiGooglebigquery />,
-            summary:
-              'Transform JSON data into BigQuery SQL syntax suitable for schema definition and data loading with precision.',
+            summary: 'Convert a JSON sample into BigQuery SQL for defining a table schema.',
           },
           {
             label: 'to TOML',
             fullName: 'Convert JSON to TOML',
+            pageTitle: 'JSON to TOML',
             path: '/convert/json/toml',
             icon: <SiToml />,
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated TOML format with instant results.',
+              'Convert JSON data to TOML while preserving its nested structure where the formats allow.',
           },
           {
             label: 'to YAML',
             fullName: 'Convert JSON to YAML',
+            pageTitle: 'JSON to YAML',
             path: '/convert/json/yaml',
             icon: <SiYaml />,
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated YAML format with instant results.',
+              'Convert JSON data to YAML while preserving its nested structure where the formats allow.',
           },
           {
             label: 'to TOON',
             fullName: 'Convert JSON to TOON',
+            pageTitle: 'JSON to TOON',
             path: '/convert/json/toon',
             summary:
-              'Real-time conversion of complex JSON structures into clean, validated TOON format with instant results.',
+              'Convert JSON data to TOON, a compact format for representing structured data.',
           },
         ],
       },
       {
         label: 'CSS',
+        path: '/convert/css',
         fullName: 'Convert CSS',
-        icon: <SiCss3 />,
+        icon: <SiCss />,
+        categories: ['Code Converters'],
         items: [
           {
-            label: 'to Javascript',
-            fullName: 'Convert CSS to Javascript',
+            label: 'to JavaScript',
+            fullName: 'Convert CSS to JavaScript',
+            pageTitle: 'CSS to JavaScript',
             path: '/convert/css/js',
             icon: <SiJavascript />,
             summary:
-              'Convert standard CSS rules into JS objects suitable for inline styling or integration into JavaScript environments.',
+              'Convert CSS declarations into JavaScript style objects for use in JavaScript code.',
+            serverAction: true,
           },
           {
             label: 'to SCSS',
             fullName: 'Convert CSS to SCSS',
+            pageTitle: 'CSS to SCSS',
             path: '/convert/css/scss',
             icon: <SiSass />,
-            summary:
-              'Transform standard CSS files into the dynamic SCSS format, enabling the use of variables, nesting, and mixins.',
+            summary: 'Convert CSS rules to SCSS syntax for continued editing with Sass.',
+            serverAction: true,
           },
           {
             label: 'to Tailwind V3',
             fullName: 'Convert CSS to Tailwind V3',
+            pageTitle: 'CSS to Tailwind V3',
             path: '/convert/css/tailwind-v3',
             icon: <SiTailwindcss />,
-            summary: `Converts standard CSS into Tailwind CSS classes, streamlining the migration to a utility-first framework and ensuring responsive, maintainable designs.`,
+            summary: `Translate CSS styles into Tailwind CSS v3 utility classes.`,
+            serverAction: true,
           },
         ],
       },
       {
         label: 'SCSS',
+        path: '/convert/scss',
         fullName: 'Convert SCSS',
         icon: <SiSass />,
+        categories: ['Code Converters'],
         items: [
           {
             label: 'to CSS',
             fullName: 'Convert SCSS to CSS',
+            pageTitle: 'SCSS to CSS',
             path: '/convert/scss/css',
-            icon: <SiCss3 />,
-            summary:
-              'Compile dynamic SCSS code into static, production-ready CSS format. Features instant conversion and clean output.',
+            icon: <SiCss />,
+            summary: 'Compile SCSS into CSS for use in a browser or stylesheet.',
           },
           {
-            label: 'to Javascript',
-            fullName: 'Convert SCSS to Javascript',
+            label: 'to JavaScript',
+            fullName: 'Convert SCSS to JavaScript',
+            pageTitle: 'SCSS to JavaScript',
             path: '/convert/scss/js',
             icon: <SiJavascript />,
-            summary:
-              'Translate dynamic SCSS variables and rules into usable JavaScript object structures for web applications.',
+            summary: 'Convert SCSS styles into JavaScript style objects for use in an application.',
           },
           {
             label: 'to Tailwind V3',
             fullName: 'Convert SCSS to Tailwind V3',
+            pageTitle: 'SCSS to Tailwind V3',
             path: '/convert/scss/tailwind-v3',
             icon: <SiTailwindcss />,
-            summary:
-              'Converts SCSS into Tailwind CSS classes, facilitating a smooth transition to a utility-first framework and promoting responsive, maintainable designs.',
+            summary: 'Translate SCSS styles into Tailwind CSS v3 utility classes.',
           },
         ],
       },
       {
-        label: 'Typescript',
-        fullName: 'Convert Typescript',
+        label: 'TypeScript',
+        path: '/convert/ts',
+        fullName: 'Convert TypeScript',
         icon: <SiTypescript />,
+        categories: ['Code Converters'],
         items: [
           {
             label: 'to JSON Schema',
-            fullName: 'Convert Typescript to JSON Schema',
+            fullName: 'Convert TypeScript to JSON Schema',
+            pageTitle: 'TypeScript to JSON Schema',
             path: '/convert/ts/json-schema',
             icon: <SiJson />,
-            summary:
-              'Automatically generate a comprehensive JSON Schema definition from any provided Typescript interface/type.',
+            summary: 'Create a JSON Schema from TypeScript interfaces or type declarations.',
           },
           {
             label: 'to Zod',
-            fullName: 'Convert Typescript to Zod',
+            fullName: 'Convert TypeScript to Zod',
+            pageTitle: 'TypeScript to Zod',
             path: '/convert/ts/zod',
             icon: <SiZod />,
             summary:
-              'Quickly generate a Zod schema object from your existing Typescript interface or type definitions.',
+              'Build a Zod schema from TypeScript interfaces or type declarations for runtime validation.',
           },
           {
-            label: 'to Javascript',
-            fullName: 'Convert Typescript to Javascript',
+            label: 'to JavaScript',
+            fullName: 'Convert TypeScript to JavaScript',
+            pageTitle: 'TypeScript to JavaScript',
             path: '/convert/ts/javascript',
             icon: <SiJavascript />,
-            summary:
-              'Automatically translates TypeScript code into equivalent JavaScript code, removing type annotations.',
+            summary: 'Remove TypeScript type annotations and convert the code to JavaScript.',
           },
         ],
       },
       {
         label: 'JSS',
+        path: '/convert/jss',
         fullName: 'Convert JSS',
         icon: <SiJss />,
+        categories: ['Code Converters'],
         items: [
           {
             label: 'to CSS',
             fullName: 'Convert JSS to CSS',
+            pageTitle: 'JSS to CSS',
             path: '/convert/jss/css',
-            icon: <SiCss3 />,
-            summary:
-              'Instantly translate JavaScript Style Sheets (JSS) into standard CSS code with real-time validation feedback.',
+            icon: <SiCss />,
+            summary: 'Convert JavaScript Style Sheets (JSS) rules into CSS.',
           },
           {
             label: 'to SCSS',
             fullName: 'Convert JSS to SCSS',
+            pageTitle: 'JSS to SCSS',
             path: '/convert/jss/scss',
             icon: <SiSass />,
-            summary:
-              'Translate JavaScript Style Sheets (JSS) into the flexible and powerful SCSS syntax for CSS pre-processing.',
+            summary: 'Convert JavaScript Style Sheets (JSS) rules into SCSS syntax.',
           },
           {
             label: 'to Tailwind V3',
             fullName: 'Convert JSS to Tailwind V3',
+            pageTitle: 'JSS to Tailwind V3',
             path: '/convert/jss/tailwind-v3',
             icon: <SiTailwindcss />,
-            summary: `Converts JavaScript Style Sheets (JSS) into the utility-first classes of Tailwind CSS, facilitating a modern and efficient styling workflow.`,
+            summary: `Translate JavaScript Style Sheets (JSS) rules into Tailwind CSS v3 utility classes.`,
           },
         ],
       },
       {
         label: 'TOML',
+        path: '/convert/toml',
         fullName: 'Convert TOML',
         icon: <SiToml />,
+        categories: ['Data Converters'],
         items: [
           {
             label: 'to JSON',
             fullName: 'Convert TOML to JSON',
+            pageTitle: 'TOML to JSON',
             path: '/convert/toml/json',
             icon: <LuFileJson2 />,
             summary:
-              'Real-time conversion of complex TOML structures into clean, validated JSON format with instant results.',
+              'Convert TOML data to JSON for use in tools and applications that expect JSON.',
           },
           {
             label: 'to JSON Schema',
             fullName: 'Convert TOML to JSON Schema',
+            pageTitle: 'TOML to JSON Schema',
             path: '/convert/toml/jsschema',
             icon: <SiJson />,
-            summary:
-              'Automatically generate a comprehensive JSON Schema definition from any provided TOML object with instant results.',
+            summary: 'Create a JSON Schema from a TOML sample to describe its data structure.',
           },
           {
             label: 'to YAML',
             fullName: 'Convert TOML to YAML',
+            pageTitle: 'TOML to YAML',
             path: '/convert/toml/yaml',
             icon: <SiYaml />,
             summary:
-              'Real-time conversion of complex TOML structures into clean, validated YAML format with instant results.',
+              'Convert TOML data to YAML while preserving its nested structure where the formats allow.',
           },
           {
-            label: 'to Typescript',
-            fullName: 'Convert TOML to Typescript',
+            label: 'to TypeScript',
+            fullName: 'Convert TOML to TypeScript',
+            pageTitle: 'TOML to TypeScript',
             path: '/convert/toml/ts',
             icon: <SiTypescript />,
-            summary:
-              'Real-time conversion of complex TOML structures into clean, validated Typescript interface format with instant results.',
+            summary: 'Generate TypeScript interfaces from a TOML sample and its data structure.',
           },
           {
             label: 'to JSDoc',
             fullName: 'Convert TOML to JSDoc',
+            pageTitle: 'TOML to JSDoc',
             path: '/convert/toml/jsdoc',
             icon: <SiReadthedocs />,
             summary:
-              'Generate standardized JSDoc comments and structure definitions directly from your TOML data with instant accuracy.',
+              'Create JSDoc type definitions from a TOML sample to document its data structure.',
           },
         ],
       },
       {
         label: 'YAML',
+        path: '/convert/yaml',
         fullName: 'Convert YAML',
         icon: <SiYaml />,
+        categories: ['Data Converters'],
         items: [
           {
             label: 'to JSON',
             fullName: 'Convert YAML to JSON',
+            pageTitle: 'YAML to JSON',
             path: '/convert/yaml/json',
             icon: <LuFileJson2 />,
             summary:
-              'Real-time conversion of complex YAML structures into clean, validated JSON format with instant results.',
+              'Convert YAML data to JSON for use in tools and applications that expect JSON.',
           },
           {
             label: 'to JSON Schema',
             fullName: 'Convert YAML to JSON Schema',
+            pageTitle: 'YAML to JSON Schema',
             path: '/convert/yaml/jsschema',
             icon: <SiJson />,
-            summary:
-              'Automatically generate a comprehensive JSON Schema definition from any provided YAML object with instant results.',
+            summary: 'Create a JSON Schema from a YAML sample to describe its data structure.',
           },
           {
             label: 'to TOML',
             fullName: 'Convert YAML to TOML',
+            pageTitle: 'YAML to TOML',
             path: '/convert/yaml/toml',
             icon: <SiToml />,
             summary:
-              'Real-time conversion of complex YAML structures into clean, validated TOML format with instant results.',
+              'Convert YAML data to TOML while preserving its nested structure where the formats allow.',
           },
           {
-            label: 'to Typescript',
-            fullName: 'Convert YAML to Typescript',
+            label: 'to TypeScript',
+            fullName: 'Convert YAML to TypeScript',
+            pageTitle: 'YAML to TypeScript',
             path: '/convert/yaml/ts',
             icon: <SiTypescript />,
-            summary:
-              'Real-time conversion of complex YAML structures into clean, validated Typescript interface format with instant results.',
+            summary: 'Generate TypeScript interfaces from a YAML sample and its data structure.',
           },
           {
             label: 'to JSDoc',
             fullName: 'Convert YAML to JSDoc',
+            pageTitle: 'YAML to JSDoc',
             path: '/convert/yaml/jsdoc',
             icon: <SiReadthedocs />,
             summary:
-              'Generate standardized JSDoc comments and structure definitions directly from your YAML data with instant accuracy.',
+              'Create JSDoc type definitions from a YAML sample to document its data structure.',
           },
         ],
       },
       {
         label: 'PHP',
+        path: '/convert/php',
         fullName: 'Convert PHP',
         icon: <SiPhp />,
+        categories: ['Data Converters'],
         items: [
           {
             label: 'to Serialized Data',
             fullName: 'Convert Data to PHP Serialized Data',
+            pageTitle: 'Data to PHP Serialized Data',
             path: '/convert/php/serialized',
             summary:
-              'Converts arrays or objects into a PHP-serialized string for database storage or application data transfer.',
+              'Serialize arrays or objects into the PHP serialized string format for storage or data exchange.',
             icon: <SiPhp />,
           },
           {
             label: 'to De-Serialized Data',
             fullName: 'Convert PHP Serialized Data to De-Serialized Data',
+            pageTitle: 'PHP Serialized Data to De-Serialized Data',
             path: '/convert/php/deserialized',
             summary:
-              'Restores PHP serialized strings back into readable arrays or objects for easier data manipulation and debugging.',
+              'Decode a PHP-serialized string into readable data for inspection or further use.',
             icon: <Database />,
           },
         ],
@@ -603,8 +665,10 @@ export const NAVIGATION = new NavigationManager([
 
   {
     label: 'Image Tools',
+    path: '/image-tools',
     // eslint-disable-next-line jsx-a11y/alt-text
     icon: <Image />,
+    categories: ['Utilities'],
     items: [
       {
         label: 'Placeholder Image Generator',
@@ -612,7 +676,7 @@ export const NAVIGATION = new NavigationManager([
         tags: ['Dummy Image', 'Mock Image'],
         icon: <PiPlaceholder />,
         summary:
-          'Generate custom placeholder images with specific dimensions, colors, and text directly in the browser.',
+          'Create placeholder images by setting their dimensions, background color, and text in your browser.',
       },
       {
         label: 'Image Compressor',
@@ -620,7 +684,7 @@ export const NAVIGATION = new NavigationManager([
         tags: ['Image Optimizer', 'Compress PNG', 'Compress JPEG', 'Compress WebP'],
         icon: <LuImageDown />,
         summary:
-          'Reduce image file sizes (PNG, JPEG, WebP) without significant loss of quality. Optimize images for faster loading web pages and reduced storage.',
+          'Compress PNG, JPEG, or WebP images to reduce file size while adjusting output quality.',
         sourceUrl: 'https://www.npmjs.com/package/compressorjs',
       },
       {
@@ -628,7 +692,7 @@ export const NAVIGATION = new NavigationManager([
         path: '/image-tools/image-converter',
         tags: ['Convert WebP to JPEG', 'Convert PNG to WebP', 'Image Format Converter'],
         icon: <PiImagesSquareBold />,
-        summary: 'Convert images between various formats like WebP, JPEG, PNG and more.',
+        summary: 'Convert images between supported formats, including WebP, JPEG, and PNG.',
         sourceUrl: 'https://www.npmjs.com/package/compressorjs',
       },
       {
@@ -636,14 +700,14 @@ export const NAVIGATION = new NavigationManager([
         path: '/image-tools/image-resizer',
         tags: ['Resize Image', 'Scale Image', 'Change Dimensions'],
         icon: <Maximize />,
-        summary: 'Resize images to specific dimensions or percentage scales.',
+        summary: 'Resize an image by entering new dimensions or scaling it by a percentage.',
       },
       {
         label: 'Image Cropper',
         path: '/image-tools/image-cropper',
         tags: ['Crop Image', 'Aspect Ratio', 'Trim Image'],
         icon: <Crop />,
-        summary: 'Crop images to specific aspect ratios or freeform dimensions.',
+        summary: 'Crop an image to a preset aspect ratio or choose the crop dimensions yourself.',
         sourceUrl: 'https://www.npmjs.com/package/react-image-crop',
       },
     ],
@@ -651,13 +715,15 @@ export const NAVIGATION = new NavigationManager([
 
   {
     label: 'Other Tools',
+    path: '/other-tools',
     icon: <ToolCase />,
+    categories: ['Utilities'],
     items: [
       {
         label: 'Markdown Editor',
         path: '/other-tools/markdown-editor',
         tags: ['Markdown Viewer', 'Markdown Preview', 'Readme Preview', 'Readme Viewer'],
-        summary: `A writing tool for fast, lightweight documentation. Features live preview for instant Markdown rendering, making writing and formatting effortless.`,
+        summary: `Write Markdown and preview the rendered document as you edit.`,
         icon: <SiMarkdown />,
       },
       {
@@ -673,14 +739,13 @@ export const NAVIGATION = new NavigationManager([
         sourceUrl: 'https://www.npmjs.com/package/uuid',
         icon: <Fingerprint />,
         summary:
-          'Creates universally unique identifiers. Supports modern versions (v1,v3,v4,v5,v6) for various application needs, ensuring global uniqueness.',
+          'Generate UUIDs using the versions supported by the tool, with options suited to different identifier needs.',
       },
       {
         label: 'URL Parser',
         path: '/other-tools/url-parser',
         tags: ['Query params'],
-        summary:
-          'Breaks down a URL into its core components: protocol, hostname, path, query parameters, and fragment. Ideal for debugging and analysis.',
+        summary: 'Parse a URL into its protocol, hostname, path, query parameters, and fragment.',
         icon: <Link2 />,
       },
       {
@@ -693,8 +758,7 @@ export const NAVIGATION = new NavigationManager([
           'Convert an Image to Data URI',
         ],
         icon: <FileUp />,
-        summary:
-          'Encodes files (images, documents, etc.) into a Base64 string for embedding data directly into HTML/CSS or for easy data transfer.',
+        summary: 'Encode a file as Base64 text for data transfer or embedding in HTML and CSS.',
       },
       {
         label: 'Base64 File / Image Decoder',
@@ -706,8 +770,7 @@ export const NAVIGATION = new NavigationManager([
           'Convert a Data URI to an Image',
         ],
         icon: <FileDown />,
-        summary:
-          'Converts a Base64 string back into its original binary file/image format for viewing, downloading, or further processing.',
+        summary: 'Decode a Base64 string into a file you can view or download.',
       },
       {
         label: 'QR Code Generator',
@@ -715,7 +778,7 @@ export const NAVIGATION = new NavigationManager([
         icon: <QrCode />,
         sourceUrl: 'https://github.com/kozakdenys/qr-code-styling',
         summary:
-          'Versatile QR tool: create branded codes with custom logos. Supports URL, WiFi, vCard, SMS, Email, Text, and Geo schemas for seamless user actions.',
+          'Create QR codes for URLs, Wi-Fi, contact details, messages, and other supported data, with optional colors and logos.',
       },
       {
         label: 'Lorem Ipsum Generator',
@@ -723,15 +786,14 @@ export const NAVIGATION = new NavigationManager([
         tags: ['Random Text Generator'],
         icon: <Type />,
         summary:
-          'Quickly create industry standard placeholder text for layouts and designs with this custom Lorem Ipsum generator.',
+          'Generate Lorem Ipsum placeholder text for page layouts, mockups, and design previews.',
       },
       {
         label: 'Word Counter',
         path: '/other-tools/word-counter',
         tags: ['Sentence Counter', 'Text Counter'],
         icon: <WholeWord />,
-        summary:
-          'Instantly track word, character, and sentence counts to ensure your writing meets specific length requirements.',
+        summary: 'Count words, characters, and sentences in a block of text.',
       },
       {
         label: 'JSON Editor',
@@ -739,8 +801,7 @@ export const NAVIGATION = new NavigationManager([
         tags: ['JSON Viewer', 'JSON Validator'],
         icon: <FileBraces />,
         sourceUrl: 'https://www.npmjs.com/package/vanilla-jsoneditor',
-        summary:
-          'A versatile web-based tool to view, edit, and format JSON data with tree view, code editor, and schema validation.',
+        summary: 'View, edit, and format JSON in a tree or code editor, with schema validation.',
       },
       {
         label: 'Data Size Converter',
@@ -748,7 +809,16 @@ export const NAVIGATION = new NavigationManager([
         fullName: 'Data Size Converter',
         tags: ['File Size Converter'],
         icon: <Database />,
-        summary: `Converts between various data storage units (bits, bytes, KB, MB, GB, etc.) with support for both 1000 and 1024 base calculations.`,
+        summary: `Convert data sizes across bit and byte units using either decimal (1000) or binary (1024) calculations.`,
+      },
+      {
+        label: 'CSP Generator',
+        path: '/other-tools/csp-header-generator',
+        fullName: 'Content Security Policy Header Generator',
+        tags: ['CSP', 'Header Generator'],
+        icon: <Shield />,
+        summary:
+          'Build a Content Security Policy header using directive groups, service presets, and script or style hashes.',
       },
     ],
   },

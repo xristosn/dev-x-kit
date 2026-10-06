@@ -7,9 +7,9 @@ import { cn } from '@/lib/utils';
 import { GradientValue } from '@/types/gradient';
 import { GradientPreview } from './gradient-preview';
 import { v4 as uuid } from 'uuid';
-import { sortStops } from './utils';
+import { moveGradientStop, sortStops } from './utils';
 
-interface GradientSliderProps {
+type GradientSliderProps = {
   value: GradientValue;
   setValue: React.Dispatch<React.SetStateAction<GradientValue>>;
   setCurrentStopId: React.Dispatch<React.SetStateAction<string>>;
@@ -17,7 +17,7 @@ interface GradientSliderProps {
   max?: number;
   step?: number;
   className?: string;
-}
+};
 
 export const GradientSlider: React.FC<GradientSliderProps> = ({
   value,
@@ -33,11 +33,6 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
 
   const valueToPercent = (val: number) => {
     return ((val - min) / (max - min)) * 100;
-  };
-
-  const percentToValue = (percent: number) => {
-    const rawValue = (percent / 100) * (max - min) + min;
-    return Math.round(rawValue / step) * step;
   };
 
   const onThumbMouseDown = (index: number) => (e: React.MouseEvent) => {
@@ -93,18 +88,15 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
   const updateThumbPosition = (clientX: number) => {
     if (draggingIndex === null || !sliderRef.current) return;
 
-    const rect = sliderRef.current.getBoundingClientRect();
-    const percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-    const newValue = percentToValue(percent);
-
-    const clampedValue = Math.max(min, Math.min(max, newValue));
-
-    const newStops = value.colorStops
-      .map((s, idx) => ({
-        ...s,
-        offset: idx === draggingIndex ? clampedValue : s.offset,
-      }))
-      .sort(sortStops);
+    const { left, width } = sliderRef.current.getBoundingClientRect();
+    const newStops = moveGradientStop(value.colorStops, draggingIndex, {
+      clientX,
+      left,
+      width,
+      min,
+      max,
+      step,
+    });
 
     setValue((p) => ({
       ...p,
@@ -134,9 +126,18 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
   }, [draggingIndex]);
 
   return (
-    <div className={cn('relative w-full', className)}>
-      <div ref={sliderRef} className="relative w-full cursor-pointer" onPointerDown={onTrackClick}>
-        <GradientPreview value={value} className="h-8 rounded-sm" />
+    <div data-testid="gradient-slider" className={cn('relative w-full', className)}>
+      <div
+        ref={sliderRef}
+        data-testid="gradient-slider-track"
+        className="relative w-full cursor-pointer"
+        onPointerDown={onTrackClick}
+      >
+        <GradientPreview
+          data-testid="gradient-slider-preview"
+          value={value}
+          className="h-8 rounded-sm"
+        />
 
         {value.colorStops.map(({ offset: value, color }, index) => {
           const percent = valueToPercent(value);
@@ -144,6 +145,7 @@ export const GradientSlider: React.FC<GradientSliderProps> = ({
           return (
             <div
               key={index}
+              data-testid={`gradient-slider-thumb-${index}`}
               data-slot="thumb"
               className={cn(
                 'absolute top-1/2 -translate-y-1/2 -translate-x-1/2',

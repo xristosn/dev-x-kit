@@ -132,6 +132,33 @@ export function sortStops(a: GradientStop, b: GradientStop): number {
   return 0;
 }
 
+type GradientStopDragPosition = {
+  clientX: number;
+  left: number;
+  width: number;
+  min: number;
+  max: number;
+  step: number;
+};
+
+export function moveGradientStop(
+  colorStops: readonly GradientStop[],
+  draggingIndex: number,
+  { clientX, left, width, min, max, step }: GradientStopDragPosition
+): GradientStop[] {
+  const percent = Math.max(0, Math.min(100, ((clientX - left) / width) * 100));
+  const rawValue = (percent / 100) * (max - min) + min;
+  const newValue = Math.round(rawValue / step) * step;
+  const clampedValue = Math.max(min, Math.min(max, newValue));
+
+  return colorStops
+    .map((stop, index) => ({
+      ...stop,
+      offset: index === draggingIndex ? clampedValue : stop.offset,
+    }))
+    .sort(sortStops);
+}
+
 export function getGradientColor(value: GradientValue): string {
   if (value.colorStops.length === 1) return value.colorStops[0].color;
 
@@ -161,7 +188,7 @@ export function cssGradientToImage(
 
   let canvasGradient: CanvasGradient;
 
-  if (!value.type) {
+  if (value.type !== 'radial') {
     const angle = value.rotation;
 
     const radian = ((angle - 90) * Math.PI) / 180;

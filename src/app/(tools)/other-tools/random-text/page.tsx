@@ -1,11 +1,11 @@
 'use client';
 
-import { Container } from '@/components/container';
-import { generateLorem, LOREM_LIMITS, LoremType } from './utils';
-import { useEffect, useState } from 'react';
-import { InputWrapper } from '@/components/input-wrapper';
-import { Input } from '@/components/ui/input';
+import { ClientOnly } from '@/components/client-only';
 import { CopyIconButton } from '@/components/copy-button';
+import { FaqSection, type FaqItem } from '@/components/faq-section';
+import { InputWrapper } from '@/components/input-wrapper';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -14,42 +14,70 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { capitalize } from 'lodash-es';
-import { Button } from '@/components/ui/button';
-import { ClientOnly } from '@/components/client-only';
+import { useState } from 'react';
+import {
+  DEFAULT_AMOUNTS,
+  DEFAULT_RANDOM_TEXT_TYPE,
+  generateRandomText,
+  LOREM_LIMITS,
+  RandomTextType,
+} from './_lib/utils';
+
+const FAQS = [
+  {
+    title: 'What kinds of text can the generator create?',
+    description:
+      'Choose paragraphs, sentences, words, or characters. Paragraph, sentence, and word output uses words from a fixed Lorem Ipsum vocabulary. Character mode instead creates random letters and digits, so it is not readable Lorem Ipsum.',
+  },
+  {
+    title: 'How much text can I generate at once?',
+    description:
+      'The amount is capped according to the selected type: up to 50 paragraphs, 100 sentences, or 1,000 words or characters. If you switch types while the current amount is above the new limit, the amount is reduced to that limit.',
+  },
+  {
+    title: 'Why does Generate change the placeholder text?',
+    description:
+      'The word-based modes choose from a fixed Lorem Ipsum word list, so generating again can produce a different sample. Changing the type or amount also updates the output to match the new selection.',
+  },
+] satisfies readonly FaqItem[];
 
 export default function RandomTextGenerator() {
-  const [type, setType] = useState<LoremType>('sentences');
-  const [amount, setAmount] = useState(5);
-  const [value, setValue] = useState(generateLorem({ type, amount }));
+  const [type, setType] = useState<RandomTextType>(DEFAULT_RANDOM_TEXT_TYPE);
+  const [amount, setAmount] = useState(DEFAULT_AMOUNTS[DEFAULT_RANDOM_TEXT_TYPE]);
+  const [value, setValue] = useState(() => generateRandomText({ type, amount }));
 
   const onGenerate = () => {
-    setValue(generateLorem({ type, amount }));
+    setValue(generateRandomText({ type, amount }));
   };
 
-  useEffect(() => {
-    onGenerate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amount, type]);
+  const onAmountChange = (rawAmount: string) => {
+    const nextAmount = Math.min(LOREM_LIMITS[type], Math.max(1, Number(rawAmount)));
+    setAmount(nextAmount);
+    setValue(generateRandomText({ type, amount: nextAmount }));
+  };
+
+  const onTypeChange = (rawType: string | null) => {
+    if (rawType === null) return;
+
+    const nextType = rawType as RandomTextType;
+    const defaultAmount = nextType === 'characters' ? DEFAULT_AMOUNTS.characters : amount;
+    const nextAmount = Math.min(LOREM_LIMITS[nextType], Math.max(1, Number(defaultAmount)));
+    setType(nextType);
+    setAmount(nextAmount);
+    setValue(generateRandomText({ type: nextType, amount: nextAmount }));
+  };
 
   return (
-    <Container>
+    <>
       <div className="flex gap-4 items-end">
         <InputWrapper label="Type">
-          <Select
-            value={type}
-            onValueChange={(v) => {
-              setAmount((prev) =>
-                Math.min(LOREM_LIMITS[v as LoremType], Math.max(1, Number(prev)))
-              );
-              setType(v as LoremType);
-            }}
-          >
-            <SelectTrigger className="w-32">
+          <Select value={type} onValueChange={onTypeChange}>
+            <SelectTrigger data-testid="random-text-type-trigger" className="w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {['paragraphs', 'sentences', 'words'].map((item) => (
-                <SelectItem key={item} value={item}>
+              {['paragraphs', 'sentences', 'words', 'characters'].map((item) => (
+                <SelectItem key={item} data-testid={`random-text-type-${item}`} value={item}>
                   {capitalize(item)}
                 </SelectItem>
               ))}
@@ -59,6 +87,7 @@ export default function RandomTextGenerator() {
 
         <InputWrapper label="Amount" id="lorem-amount">
           <Input
+            data-testid="random-text-amount"
             id="lorem-amount"
             type="number"
             min={1}
@@ -66,13 +95,11 @@ export default function RandomTextGenerator() {
             step={1}
             value={amount}
             className="w-20"
-            onChange={(e) =>
-              setAmount(Math.min(LOREM_LIMITS[type], Math.max(1, Number(e.target.value))))
-            }
+            onChange={(e) => onAmountChange(e.target.value)}
           />
         </InputWrapper>
 
-        <Button size="lg" variant="outline" onClick={onGenerate}>
+        <Button data-testid="random-text-generate" size="lg" variant="outline" onClick={onGenerate}>
           Generate
         </Button>
 
@@ -81,11 +108,15 @@ export default function RandomTextGenerator() {
         </div>
       </div>
 
-      <ClientOnly fallback={<div className="grow" />}>
-        <p className="grow bg-muted text-foreground p-4 rounded-xl shadow-sm text-sm whitespace-break-spaces">
+      <ClientOnly fallback={<div className="grow bg-muted rounded-xl shadow-sm" />}>
+        <p
+          data-testid="random-text-output"
+          className="grow editor-height overflow-y-auto bg-muted text-foreground p-4 rounded-xl shadow-sm text-sm whitespace-break-spaces break-all"
+        >
           {value}
         </p>
       </ClientOnly>
-    </Container>
+      <FaqSection items={FAQS} />
+    </>
   );
 }

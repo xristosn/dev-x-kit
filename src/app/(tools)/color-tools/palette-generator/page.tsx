@@ -1,24 +1,48 @@
 'use client';
 
-import { Container } from '@/components/container';
+import { FaqSection } from '@/components/faq-section';
+import type { FaqItem } from '@/components/faq-section';
+import { ClientOnly } from '@/components/client-only';
+import { CodeDisplay } from '@/components/code-display';
 import { ColorPopover } from '@/components/color/color-popover';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useWebStorage } from '@/hooks/use-web-storage';
+import { cn } from '@/lib/utils';
+import { Moon, Sun } from 'lucide-react';
+import { IColor } from 'react-color-palette';
+import { ColorDialog } from './_components/color-dialog';
+import { PalettePreview } from './_components/palette-preview';
 import {
   generatePalettes,
   getDefaultPaletteGeneratorStoreValue,
   paletteToChakraV3,
   paletteToCss,
   paletteToText,
-} from './utils';
-import { IColor } from 'react-color-palette';
-import { ClientOnly } from '@/components/client-only';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Moon, Sun } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { PalettePreview } from './palette-preview';
-import { ColorDialog } from './color-dialog';
-import { CodeDisplay } from '@/components/code-display';
+} from './_lib/utils';
+
+const FAQS = [
+  {
+    title: 'How do the primary and background colors affect the palette?',
+    description:
+      'The generator builds a 12-color scale from the selected primary and background colors. It blends between those colors, then extends the scale toward white or black depending on the background. Changing either input regenerates the scale and preview.',
+  },
+  {
+    title: 'Do light and dark modes share the same colors?',
+    description:
+      'No. Light and dark mode each keep their own primary and background colors. Switching modes changes which pair is used to generate the palette, so you can tune both themes separately.',
+  },
+  {
+    title: 'Can I copy a specific palette color?',
+    description:
+      'Select a swatch to open its color details. The dialog shows the color as HEX, RGB, and HSV, with a copy button for each format.',
+  },
+  {
+    title: 'Which code formats can I export?',
+    description:
+      'The output panel provides CSS, Chakra UI v3, and plain text versions of the generated palette. The palette preview and these formats do not certify that every color combination meets accessibility contrast requirements.',
+  },
+] satisfies readonly FaqItem[];
 
 export default function PaletteGenerator() {
   const [value, setValue] = useWebStorage(
@@ -27,15 +51,13 @@ export default function PaletteGenerator() {
     getDefaultPaletteGeneratorStoreValue()
   );
 
-  console.log({ value });
-
   const palette = generatePalettes(
     value[value.theme].primaryColor.hex,
     value[value.theme].bgColor.hex
   );
 
   return (
-    <Container>
+    <>
       <div className="bg-card text-card-foreground p-4 rounded-xl shadow-md flex flex-col gap-4">
         <div className="flex items-center justify-center">
           <ClientOnly fallback={<Skeleton className="h-10 w-40" />}>
@@ -153,6 +175,7 @@ export default function PaletteGenerator() {
           },
         ]}
       />
-    </Container>
+      <FaqSection items={FAQS} />
+    </>
   );
 }

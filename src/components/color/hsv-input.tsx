@@ -2,45 +2,37 @@
 
 import { ColorService, IColor } from 'react-color-palette';
 import { Input } from '../ui/input';
-import { useEffect, useState } from 'react';
-import tinyColor from 'tinycolor2';
 import { ColorInputWrapper } from './color-input-wrapper';
 import { IColorHsv } from './utils';
+import { useColorInput } from './_hooks/use-color-input';
 
-export interface RGBInputProps {
+const isValidHsvColor = ({ h, s, v, a }: IColorHsv) =>
+  Number.isFinite(h) &&
+  h >= 0 &&
+  h <= 360 &&
+  [s, v].every((value) => Number.isFinite(value) && value >= 0 && value <= 100) &&
+  Number.isFinite(a) &&
+  a >= 0 &&
+  a <= 1;
+
+export type HSVInputProps = {
   value: IColor;
   setValue: (color: IColor) => void;
   noLabel?: boolean;
   disableAlpha?: boolean;
-}
+};
 
-export const HSVInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, disableAlpha }) => {
-  const [color, setColor] = useState(value.hsv);
-  const [error, setError] = useState(false);
+export const HSVInput: React.FC<HSVInputProps> = ({ value, setValue, noLabel, disableAlpha }) => {
+  const { color, applyChange, error } = useColorInput(value.hsv, value.hsv, isValidHsvColor);
 
   const onColorChange = (prop: keyof IColorHsv, value: string) => {
     let finalValue = Number(value);
     const max = prop === 'h' ? 360 : 100;
-
     if (finalValue > max) finalValue = max;
-
     const updatedColor = { ...color, [prop]: finalValue };
-
-    const hasError = !tinyColor(updatedColor).isValid();
-
-    if (hasError) {
-      setColor(updatedColor);
-      setError(hasError);
-    } else {
-      setValue(ColorService.convert('hsv', updatedColor));
-    }
+    const hasError = applyChange(updatedColor);
+    if (!hasError) setValue(ColorService.convert('hsv', updatedColor));
   };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setColor(value.hsv);
-    setError(false);
-  }, [value.hsv]);
 
   return (
     <ColorInputWrapper
@@ -53,6 +45,7 @@ export const HSVInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, di
     >
       <div className="flex gap-1" onBlur={() => setValue(ColorService.convert('hsv', color))}>
         <Input
+          data-testid="hsv-input-h"
           type="number"
           min={0}
           max={360}
@@ -62,6 +55,7 @@ export const HSVInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, di
           onChange={(e) => onColorChange('h', e.target.value)}
         />
         <Input
+          data-testid="hsv-input-s"
           type="number"
           min={0}
           max={100}
@@ -71,6 +65,7 @@ export const HSVInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, di
           onChange={(e) => onColorChange('s', e.target.value)}
         />
         <Input
+          data-testid="hsv-input-v"
           type="number"
           min={0}
           max={100}
@@ -81,6 +76,7 @@ export const HSVInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, di
         />
         {!disableAlpha && (
           <Input
+            data-testid="hsv-input-a"
             type="number"
             min={0}
             max={1}

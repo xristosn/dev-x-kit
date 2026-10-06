@@ -1,5 +1,6 @@
 'use client';
 
+import { FaqSection, type FaqItem } from '@/components/faq-section';
 import {
   Select,
   SelectContent,
@@ -7,19 +8,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Container } from '@/components/container';
 import {
   DataSizeType,
   DATA_SIZE_TYPES,
   convertDataSize,
   DEFAULT_DATA_SIZE_STORE_VALUE,
-} from './utils';
+} from './_lib/utils';
 import { useWebStorage } from '@/hooks/use-web-storage';
 import { Input } from '@/components/ui/input';
 import { InputWrapper } from '@/components/input-wrapper';
 import { Switch } from '@/components/ui/switch';
 import { CopyIconButton } from '@/components/copy-button';
 import { ClientOnly } from '@/components/client-only';
+
+const FAQS = [
+  {
+    title: 'When should I use base 1000 or base 1024?',
+    description:
+      'Base 1000 uses each larger unit as 1,000 of the previous unit, which is common for drive and network capacities. Base 1024 uses 1,024, as in binary-based memory calculations. Choose the base that matches the convention used by the value you are comparing.',
+  },
+  {
+    title: 'Which data-size units can I convert?',
+    description:
+      'The converter supports bytes, kilobytes, megabytes, gigabytes, terabytes, and petabytes. Select the unit of your input, enter a non-negative value, and the page shows the corresponding values in the other units.',
+  },
+  {
+    title: 'Why is my selected input unit missing from the results?',
+    description:
+      'The input unit is left out of the result cards because it is the source value. Change the “Convert” selection to see the same amount expressed from a different source unit. Each result card also has a copy action.',
+  },
+] satisfies readonly FaqItem[];
 
 export default function DataSizeConverter() {
   const [value, setValue] = useWebStorage(
@@ -29,19 +47,23 @@ export default function DataSizeConverter() {
   );
 
   return (
-    <Container>
+    <>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl bg-card shadow-md">
         <InputWrapper label="Convert">
           <Select
             value={value.type}
             onValueChange={(v) => setValue((p) => ({ ...p, type: v as DataSizeType }))}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger data-testid="data-size-converter-type-trigger" className="w-full">
               <SelectValue placeholder="Convert" className="w-full" />
             </SelectTrigger>
             <SelectContent>
               {DATA_SIZE_TYPES.map((size) => (
-                <SelectItem key={size.value} value={size.value}>
+                <SelectItem
+                  key={size.value}
+                  value={size.value}
+                  data-testid={`data-size-converter-type-option-${size.value}`}
+                >
                   {size.label}
                 </SelectItem>
               ))}
@@ -56,6 +78,7 @@ export default function DataSizeConverter() {
             step={1}
             max={Number.MAX_SAFE_INTEGER}
             id="size-value"
+            data-testid="data-size-converter-size-input"
             placeholder="Value"
             value={value.value}
             onChange={(e) =>
@@ -79,6 +102,7 @@ export default function DataSizeConverter() {
             <ClientOnly>
               <Switch
                 id="size-base"
+                data-testid="data-size-converter-base-switch"
                 checked={value.base === 1024}
                 onCheckedChange={(checked) =>
                   setValue((p) => ({ ...p, base: checked ? 1024 : 1000 }))
@@ -110,7 +134,10 @@ export default function DataSizeConverter() {
               />
             </div>
 
-            <p className="text-3xl break-all">
+            <p
+              data-testid={`data-size-converter-output-${size.value}`}
+              className="text-3xl break-all"
+            >
               <ClientOnly>
                 {convertDataSize(value.value, value.type, size.value, value.base)}
               </ClientOnly>
@@ -118,6 +145,7 @@ export default function DataSizeConverter() {
           </div>
         ))}
       </div>
-    </Container>
+      <FaqSection items={FAQS} />
+    </>
   );
 }

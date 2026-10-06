@@ -1,11 +1,11 @@
-export interface GradientValue {
+export type GradientValue = {
   type: 'linear' | 'radial';
   rotation: number;
   colorStops: GradientStop[];
-}
+};
 
-export interface GradientStop {
+export type GradientStop = {
   id: string;
   color: string;
   offset: number;
-}
+};
