@@ -65,6 +65,7 @@ describe('typescript actions', () => {
   describe('tsToJsonSchema', () => {
     it('infers JSON Schema from TypeScript interface', async () => {
       const r = await tsToJsonSchema('interface User { name: string; age: number; }', {});
+      expect(r).not.toHaveProperty('error', true);
       expect(r as string).toContain('"$schema"');
     }, 20000);
   });
@@ -72,6 +73,7 @@ describe('typescript actions', () => {
   describe('tsToZod', () => {
     it('infers Zod schema from TypeScript', async () => {
       const r = await tsToZod('interface User { name: string; }', {});
+      expect(r).not.toHaveProperty('error', true);
       expect(r as string).toContain('import { z }');
     });
   });
@@ -79,6 +81,7 @@ describe('typescript actions', () => {
   describe('tsToJs', () => {
     it('transpiles valid TypeScript to JavaScript', async () => {
       const r = await tsToJs('const x: number = 1;');
+      expect(r).not.toHaveProperty('error', true);
       expect(r as string).toContain('const x');
     });
   });

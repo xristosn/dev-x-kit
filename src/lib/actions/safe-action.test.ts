@@ -33,8 +33,9 @@ describe('safeAction', () => {
     const privateDetail = 'private path and submitted input';
 
     try {
+      const error = Object.assign(new Error(privateDetail), { code: 'ERR_TEST_FAILURE' });
       const result = await safeAction(async () => {
-        throw new Error(privateDetail);
+        throw error;
       });
 
       expect(result).toMatchObject({
@@ -45,6 +46,10 @@ describe('safeAction', () => {
       expect(result).toHaveProperty('referenceId');
       expect(JSON.stringify(result)).not.toContain(privateDetail);
       expect(log).toHaveBeenCalledOnce();
+      expect(log.mock.calls[0]?.[1]).toMatchObject({
+        errorName: 'Error',
+        errorCode: 'ERR_TEST_FAILURE',
+      });
       expect(JSON.stringify(log.mock.calls)).not.toContain(privateDetail);
       expect(JSON.stringify(log.mock.calls)).not.toContain('Error:');
     } finally {

@@ -7,6 +7,7 @@ import { getTempFile } from '../temp-dir';
 import { rm } from 'fs/promises';
 import { createGenerator } from 'ts-json-schema-generator';
 import { generate } from 'ts-to-zod';
+import transformTypeScript from '@babel/plugin-transform-typescript';
 import { parseAsync, transformAsync } from '@babel/core';
 import { safeAction } from '../safe-action';
 import { ActionValidationError } from '@/lib/action-error';
@@ -15,7 +16,7 @@ async function validateInput(input: string) {
   try {
     await parseAsync(input, {
       sourceType: 'module',
-      plugins: ['@babel/plugin-transform-typescript'],
+      plugins: [transformTypeScript],
       babelrc: false,
       configFile: false,
       sourceMaps: false,
@@ -82,7 +83,7 @@ export async function tsToJs(input: string) {
 
     const result = await transformAsync(input, {
       sourceType: 'module',
-      plugins: ['@babel/plugin-transform-typescript'],
+      plugins: [transformTypeScript],
       filename: 'file.ts',
       babelrc: false,
       configFile: false,
