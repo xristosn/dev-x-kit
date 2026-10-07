@@ -86,7 +86,7 @@ export default function ImageResizer() {
           showFilesList={false}
           inputTestId="image-resizer-file-input"
           onDropAccepted={(files) => onFileChange(files[0])}
-          dropZoneClassName={cn('editor-height')}
+          dropZoneClassName={cn(!file && 'editor-height')}
         />
 
         {file && (

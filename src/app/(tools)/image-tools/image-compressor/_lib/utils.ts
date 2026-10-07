@@ -2,6 +2,7 @@ export type ConvertedFile = {
   name: string;
   size: number;
   url?: string;
+  blob?: Blob;
   error?: string;
   sizeSavedRatio?: number;
 };

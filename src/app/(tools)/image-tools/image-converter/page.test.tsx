@@ -227,7 +227,6 @@ describe('<ImageConverter />', () => {
           abort() {}
         }
       );
-    vi.mocked(fetch).mockResolvedValue({ blob: async () => new Blob(['converted']) } as Response);
     const clickedLinks: HTMLAnchorElement[] = [];
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
       this: HTMLAnchorElement
@@ -246,7 +245,7 @@ describe('<ImageConverter />', () => {
 
     await waitFor(() => expect(clickedLinks).toHaveLength(1));
     expect(clickedLinks[0].download).toBe('converted_images.zip');
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).not.toHaveBeenCalled();
     const zipBlob = vi.mocked(URL.createObjectURL).mock.calls[1][0] as Blob;
     const archive = await JSZip.loadAsync(zipBlob);
     expect(Object.keys(archive.files)).toEqual(['successful.png']);

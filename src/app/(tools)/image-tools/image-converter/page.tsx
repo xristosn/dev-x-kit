@@ -66,6 +66,7 @@ export default function ImageConverter() {
             name: file.name,
             size: file.size,
             url: URL.createObjectURL(file),
+            blob: file,
           },
         ]);
       } else {
@@ -90,6 +91,7 @@ export default function ImageConverter() {
                     name: file.name,
                     size: outputFile.size,
                     url: URL.createObjectURL(outputFile),
+                    blob: outputFile,
                   },
                 ]);
 
@@ -118,19 +120,14 @@ export default function ImageConverter() {
     const zip = new JSZip();
 
     for (const file of convertedFiles) {
-      if (file.url) {
-        const response = await fetch(file.url);
-        const blob = await response.blob();
-        zip.file(file.name, blob);
-      }
+      if (file.blob) zip.file(file.name, file.blob);
     }
 
-    zip.generateAsync({ type: 'blob' }).then((content) => {
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(content);
-      link.download = 'converted_images.zip';
-      link.click();
-    });
+    const content = await zip.generateAsync({ type: 'blob' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = 'converted_images.zip';
+    link.click();
   };
 
   const onStartOver = () => {

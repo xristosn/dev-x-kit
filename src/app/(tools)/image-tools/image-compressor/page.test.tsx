@@ -1,8 +1,9 @@
 'use client';
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Compressor from 'compressorjs';
+import JSZip from 'jszip';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { USER_STORAGE_PREFS_KEY } from '@/lib/constants';
 import ImageCompressor from './page';
@@ -72,6 +73,31 @@ describe('<ImageCompressor />', () => {
       'href',
       'blob:compressed-2'
     );
+  });
+
+  it('downloads compressed results in a ZIP archive without fetching object URLs', async () => {
+    const user = userEvent.setup();
+    const clickedLinks: HTMLAnchorElement[] = [];
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement
+    ) {
+      clickedLinks.push(this);
+    });
+    render(<ImageCompressor />);
+
+    await user.upload(
+      screen.getByTestId('image-compressor-file-input'),
+      new File(['original'], 'image.png', { type: 'image/png' })
+    );
+    await user.click(screen.getByTestId('image-compressor-convert'));
+    expect(await screen.findByTestId('image-compressor-complete')).toBeInTheDocument();
+    await user.click(screen.getByTestId('image-compressor-download-all'));
+
+    await waitFor(() => expect(clickedLinks).toHaveLength(1));
+    expect(clickedLinks[0].download).toBe('compressed_images.zip');
+    const zipBlob = vi.mocked(URL.createObjectURL).mock.calls[1][0] as Blob;
+    const archive = await JSZip.loadAsync(zipBlob);
+    expect(Object.keys(archive.files)).toEqual(['image.png']);
   });
 
   it('shows compression errors and continues with later files', async () => {

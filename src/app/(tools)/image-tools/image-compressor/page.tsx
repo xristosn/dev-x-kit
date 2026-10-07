@@ -65,6 +65,7 @@ export default function ImageCompressor() {
                     name: file.name,
                     size: outputFile.size,
                     url: URL.createObjectURL(outputFile),
+                    blob: outputFile,
                     sizeSavedRatio: Math.round(((file.size - outputFile.size) / file.size) * 100),
                   },
                 ]);
@@ -100,19 +101,14 @@ export default function ImageCompressor() {
     const zip = new JSZip();
 
     for (const file of convertedFiles) {
-      if (file.url) {
-        const response = await fetch(file.url);
-        const blob = await response.blob();
-        zip.file(file.name, blob);
-      }
+      if (file.blob) zip.file(file.name, file.blob);
     }
 
-    zip.generateAsync({ type: 'blob' }).then((content) => {
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(content);
-      link.download = 'compressed_images.zip';
-      link.click();
-    });
+    const content = await zip.generateAsync({ type: 'blob' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = 'compressed_images.zip';
+    link.click();
   };
 
   const onStartOver = () => {
