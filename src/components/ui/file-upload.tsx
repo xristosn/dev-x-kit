@@ -40,6 +40,57 @@ const dispatchFilesAsDrop = (root: HTMLElement | null, files: File[]) => {
   return true;
 };
 
+const getDroppedFiles = (dataTransfer: DataTransfer) =>
+  Array.from(dataTransfer.items)
+    .filter((item) => item.kind === 'file')
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => file !== null);
+
+const getDroppedImageUrl = (dataTransfer: DataTransfer) => {
+  const uriList = dataTransfer
+    .getData('text/uri-list')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'));
+  const firefoxUrl = dataTransfer.getData('text/x-moz-url').split(/\r?\n/, 1)[0]?.trim();
+  const html = dataTransfer.getData('text/html');
+  const htmlUrl = html
+    ? new DOMParser()
+        .parseFromString(html, 'text/html')
+        .querySelector('img[src]')
+        ?.getAttribute('src')
+    : undefined;
+  const candidates = [
+    ...uriList,
+    dataTransfer.getData('text/x-moz-url-data').trim(),
+    firefoxUrl,
+    dataTransfer.getData('text/plain').trim(),
+    htmlUrl,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+
+    try {
+      const url = new URL(candidate);
+      if (url.protocol === 'http:' || url.protocol === 'https:') return url.href;
+    } catch {
+      // Ignore unusable transfer formats and check the remaining candidates.
+    }
+  }
+};
+
+const fetchDroppedImage = async (imageUrl: string) => {
+  const response = await fetch(imageUrl, { credentials: 'omit' });
+  if (!response.ok) throw new Error('The image URL could not be loaded.');
+
+  const blob = await response.blob();
+  if (!blob.type.startsWith('image/')) throw new Error('The dropped link is not an image.');
+
+  const filename = new URL(imageUrl).pathname.split('/').pop();
+  return new File([blob], filename || 'dropped-image', { type: blob.type });
+};
+
 export const FileUpload = ({
   containerClassName,
   dropZoneClassName,
@@ -53,6 +104,7 @@ export const FileUpload = ({
   ...props
 }: DropzoneProps) => {
   const [clipboardStatus, setClipboardStatus] = useState<string>();
+  const [dropStatus, setDropStatus] = useState<string>();
   const dropzone = useDropzone({
     ...props,
     onDrop(acceptedFiles, fileRejections, event) {
@@ -70,6 +122,39 @@ export const FileUpload = ({
       }
     },
   });
+
+  const handleExternalImageDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    if (props.disabled || event.dataTransfer.files.length > 0) return;
+
+    const droppedFiles = getDroppedFiles(event.dataTransfer);
+    if (droppedFiles.length && dispatchFilesAsDrop(dropzone.rootRef.current, droppedFiles)) {
+      event.preventDefault();
+      event.stopPropagation();
+      setDropStatus('Dropped files sent to upload validation.');
+      return;
+    }
+
+    const imageUrl = getDroppedImageUrl(event.dataTransfer);
+    if (!imageUrl) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    setDropStatus('Loading dropped image…');
+
+    try {
+      const file = await fetchDroppedImage(imageUrl);
+      if (!dispatchFilesAsDrop(dropzone.rootRef.current, [file])) {
+        throw new Error('The dropzone is unavailable.');
+      }
+      setDropStatus('Dropped image sent to upload validation.');
+    } catch (error) {
+      setDropStatus(
+        error instanceof Error && error.message === 'The dropped link is not an image.'
+          ? 'The dropped link did not return an image.'
+          : 'Could not access the dropped image. Try saving it and uploading it instead.'
+      );
+    }
+  };
 
   useEffect(() => {
     if (!enableImageClipboard || props.disabled) return;
@@ -165,7 +250,7 @@ export const FileUpload = ({
   return (
     <div className={cn('flex flex-col gap-4', containerClassName)}>
       <div
-        {...dropzone.getRootProps()}
+        {...dropzone.getRootProps({ onDropCapture: handleExternalImageDrop })}
         data-testid={testId}
         className={cn(
           'group flex w-full min-h-32 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-muted/20 px-6 py-8 text-center transition-colors hover:border-primary/50 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none cursor-pointer',
@@ -200,6 +285,15 @@ export const FileUpload = ({
           </div>
         )}
       </div>
+      {dropStatus && (
+        <span
+          data-testid="file-upload-drop-status"
+          className="self-center text-xs text-muted-foreground"
+          aria-live="polite"
+        >
+          {dropStatus}
+        </span>
+      )}
       {dropZoneDescription && (
         <div
           data-testid="file-upload-description"
@@ -219,9 +313,11 @@ export const FileUpload = ({
               >
                 <Info aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>
-                  Paste an image anywhere on this page with Ctrl/Cmd+V, or check it here. The
-                  clipboard is only read after you click the button, and your browser may ask you to
-                  grant clipboard permission. Images stay in your browser.
+                  Paste one or more images anywhere on this page with Ctrl/Cmd+V, or check them
+                  here. You can also drag images from another tab. Cross-origin image links must
+                  allow browser access. The clipboard is only read after you click the button, and
+                  your browser may ask you to grant clipboard permission. Images stay in your
+                  browser.
                 </span>
               </div>
               <button

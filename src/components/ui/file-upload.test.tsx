@@ -8,6 +8,7 @@ const imageFile = () => new File(['image data'], 'photo.png', { type: 'image/png
 class TestDataTransfer {
   files: File[] = [];
   types = ['Files'];
+  data: Record<string, string> = {};
   items: Array<{ kind: string; type: string; getAsFile: () => File }> & {
     add: (file: File) => void;
   } = Object.assign([], {
@@ -16,6 +17,10 @@ class TestDataTransfer {
       this.items.push({ kind: 'file', type: file.type, getAsFile: () => file });
     },
   });
+
+  getData(type: string) {
+    return this.data[type] ?? '';
+  }
 }
 
 class TestClipboardEvent extends Event {
@@ -150,6 +155,258 @@ describe('<FileUpload /> clipboard and drop support', () => {
     await waitFor(() => expect(onDropAccepted).toHaveBeenCalledWith([file], expect.anything()));
     expect(await screen.findByTestId('file-upload-clipboard-status')).toHaveTextContent(
       'Clipboard image sent to upload validation'
+    );
+  });
+
+  it('imports multiple images pasted anywhere on the page', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('ClipboardEvent', TestClipboardEvent);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+
+    const onDropAccepted = vi.fn();
+    const files = [imageFile(), new File(['second image'], 'second.jpg', { type: 'image/jpeg' })];
+
+    render(
+      <FileUpload
+        enableImageClipboard
+        showClipboardGuidance={false}
+        testId="file-upload-dropzone"
+        accept={{ 'image/*': [] }}
+        onDropAccepted={onDropAccepted}
+      />
+    );
+    const clipboardData = new TestDataTransfer();
+    clipboardData.files = files;
+    clipboardData.items.push(
+      ...files.map((file) => ({ kind: 'file', type: file.type, getAsFile: () => file }))
+    );
+    fireEvent.paste(document.body, { clipboardData });
+
+    await waitFor(() => expect(onDropAccepted).toHaveBeenCalledWith(files, expect.anything()));
+  });
+
+  it('imports multiple images from the clipboard button', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('ClipboardEvent', TestClipboardEvent);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+
+    const read = vi.fn().mockResolvedValue([
+      {
+        types: ['image/png'],
+        getType: vi.fn().mockResolvedValue(new Blob(['first'], { type: 'image/png' })),
+      },
+      {
+        types: ['text/plain', 'image/jpeg'],
+        getType: vi.fn().mockResolvedValue(new Blob(['second'], { type: 'image/jpeg' })),
+      },
+    ]);
+    vi.stubGlobal('navigator', { clipboard: { read } });
+    const onDropAccepted = vi.fn();
+
+    render(
+      <FileUpload enableImageClipboard accept={{ 'image/*': [] }} onDropAccepted={onDropAccepted} />
+    );
+    await userEvent.click(screen.getByTestId('file-upload-paste-button'));
+
+    await waitFor(() => expect(onDropAccepted).toHaveBeenCalledTimes(1));
+    expect(onDropAccepted.mock.calls[0][0]).toMatchObject([
+      { name: 'clipboard-image-1.png', type: 'image/png' },
+      { name: 'clipboard-image-2.jpg', type: 'image/jpeg' },
+    ]);
+  });
+
+  it('imports a cross-tab image URL through normal dropzone validation', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        blob: () => Promise.resolve(new Blob(['image data'], { type: 'image/png' })),
+      })
+    );
+    const onDropAccepted = vi.fn();
+
+    render(
+      <FileUpload
+        testId="file-upload-dropzone"
+        accept={{ 'image/*': [] }}
+        onDropAccepted={onDropAccepted}
+      />
+    );
+    const dataTransfer = new TestDataTransfer();
+    dataTransfer.files = [];
+    dataTransfer.items.length = 0;
+    dataTransfer.types = ['text/uri-list'];
+    dataTransfer.data['text/uri-list'] = 'https://images.example/photo.png';
+    fireEvent.drop(screen.getByTestId('file-upload-dropzone'), { dataTransfer });
+
+    await waitFor(() => expect(onDropAccepted).toHaveBeenCalledTimes(1));
+    expect(onDropAccepted.mock.calls[0][0][0]).toMatchObject({
+      name: 'photo.png',
+      type: 'image/png',
+    });
+    expect(await screen.findByTestId('file-upload-drop-status')).toHaveTextContent(
+      'Dropped image sent to upload validation'
+    );
+  });
+
+  it('imports an image exposed as a DataTransfer file item', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+
+    const onDropAccepted = vi.fn();
+    const file = imageFile();
+
+    render(
+      <FileUpload
+        testId="file-upload-dropzone"
+        accept={{ 'image/*': [] }}
+        onDropAccepted={onDropAccepted}
+      />
+    );
+    const dataTransfer = new TestDataTransfer();
+    dataTransfer.files = [];
+    dataTransfer.types = ['Files'];
+    dataTransfer.items.push({ kind: 'file', type: file.type, getAsFile: () => file });
+    fireEvent.drop(screen.getByTestId('file-upload-dropzone'), { dataTransfer });
+
+    await waitFor(() => expect(onDropAccepted).toHaveBeenCalledWith([file], expect.anything()));
+  });
+
+  it('reads Firefox image URLs from its browser-specific drag format', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        blob: () => Promise.resolve(new Blob(['image data'], { type: 'image/png' })),
+      })
+    );
+    const onDropAccepted = vi.fn();
+
+    render(
+      <FileUpload
+        testId="file-upload-dropzone"
+        accept={{ 'image/*': [] }}
+        onDropAccepted={onDropAccepted}
+      />
+    );
+    const dataTransfer = new TestDataTransfer();
+    dataTransfer.files = [];
+    dataTransfer.types = ['text/x-moz-url'];
+    dataTransfer.data['text/x-moz-url'] = ['https://images.example/photo.png', 'Photo'].join('\n');
+    fireEvent.drop(screen.getByTestId('file-upload-dropzone'), { dataTransfer });
+
+    await waitFor(() => expect(onDropAccepted).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith('https://images.example/photo.png', {
+      credentials: 'omit',
+    });
+  });
+
+  it('checks the HTML image URL when plain text is not a URL', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        blob: () => Promise.resolve(new Blob(['image data'], { type: 'image/png' })),
+      })
+    );
+    const onDropAccepted = vi.fn();
+
+    render(
+      <FileUpload
+        testId="file-upload-dropzone"
+        accept={{ 'image/*': [] }}
+        onDropAccepted={onDropAccepted}
+      />
+    );
+    const dataTransfer = new TestDataTransfer();
+    dataTransfer.files = [];
+    dataTransfer.types = ['text/plain', 'text/html'];
+    dataTransfer.data['text/plain'] = 'An image from another tab';
+    dataTransfer.data['text/html'] = '<img src="https://images.example/photo.png">';
+    fireEvent.drop(screen.getByTestId('file-upload-dropzone'), { dataTransfer });
+
+    await waitFor(() => expect(onDropAccepted).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith('https://images.example/photo.png', {
+      credentials: 'omit',
+    });
+  });
+
+  it('rejects cross-tab URL images that exceed the configured size limit', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        blob: () => Promise.resolve(new Blob(['large image'], { type: 'image/png' })),
+      })
+    );
+    const onDropRejected = vi.fn();
+
+    render(
+      <FileUpload
+        testId="file-upload-dropzone"
+        accept={{ 'image/*': [] }}
+        maxSize={1}
+        onDropRejected={onDropRejected}
+      />
+    );
+    const dataTransfer = new TestDataTransfer();
+    dataTransfer.files = [];
+    dataTransfer.items.length = 0;
+    dataTransfer.types = ['text/uri-list'];
+    dataTransfer.data['text/uri-list'] = 'https://images.example/photo.png';
+    fireEvent.drop(screen.getByTestId('file-upload-dropzone'), { dataTransfer });
+
+    await waitFor(() => expect(onDropRejected).toHaveBeenCalledTimes(1));
+    expect(onDropRejected.mock.calls[0][0][0].errors[0].code).toBe('file-too-large');
+  });
+
+  it('rejects cross-tab URLs that do not return an image', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        blob: () => Promise.resolve(new Blob(['not an image'], { type: 'text/plain' })),
+      })
+    );
+
+    render(<FileUpload testId="file-upload-dropzone" />);
+    const dataTransfer = new TestDataTransfer();
+    dataTransfer.files = [];
+    dataTransfer.items.length = 0;
+    dataTransfer.types = ['text/uri-list'];
+    dataTransfer.data['text/uri-list'] = 'https://images.example/not-image';
+    fireEvent.drop(screen.getByTestId('file-upload-dropzone'), { dataTransfer });
+
+    expect(await screen.findByTestId('file-upload-drop-status')).toHaveTextContent(
+      'The dropped link did not return an image'
+    );
+  });
+
+  it('explains when a cross-tab image URL cannot be fetched', async () => {
+    vi.stubGlobal('DataTransfer', TestDataTransfer);
+    vi.stubGlobal('DragEvent', TestDropEvent);
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+
+    render(<FileUpload testId="file-upload-dropzone" />);
+    const dataTransfer = new TestDataTransfer();
+    dataTransfer.files = [];
+    dataTransfer.items.length = 0;
+    dataTransfer.types = ['text/uri-list'];
+    dataTransfer.data['text/uri-list'] = 'https://images.example/photo.png';
+    fireEvent.drop(screen.getByTestId('file-upload-dropzone'), { dataTransfer });
+
+    expect(await screen.findByTestId('file-upload-drop-status')).toHaveTextContent(
+      'Could not access the dropped image'
     );
   });
 
