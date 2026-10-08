@@ -3,16 +3,8 @@ import { describe, expect, test } from 'vitest';
 import { PalettePreview, type PalettePreviewProps } from './palette-preview';
 
 describe('<PalettePreview />', () => {
-  const bgColor = {
-    hex: '#f2f2f2',
-    rgb: { r: 242, g: 242, b: 242, a: 1 },
-    hsv: { h: 0, s: 0, v: 95, a: 1 },
-  } as PalettePreviewProps['bgColor'];
-  const primaryColor = {
-    hex: '#3b82f6',
-    rgb: { r: 59, g: 130, b: 246, a: 1 },
-    hsv: { h: 217, s: 76, v: 96, a: 1 },
-  } as PalettePreviewProps['primaryColor'];
+  const bgColor: PalettePreviewProps['bgColor'] = '#f2f2f2';
+  const primaryColor: PalettePreviewProps['primaryColor'] = '#3b82f6';
   const palette = [
     '#fef3c7',
     '#ede9fe',

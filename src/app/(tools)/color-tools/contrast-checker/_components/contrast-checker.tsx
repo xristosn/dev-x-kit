@@ -4,23 +4,23 @@ import { ClientOnly } from '@/components/client-only';
 import { ColorPopover } from '@/components/color/color-popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import Color from 'colorjs.io';
 import { Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useColor } from 'react-color-palette';
-import 'react-color-palette/css';
-import tinycolor from 'tinycolor2';
 
 export const ContastChecker: React.FC = () => {
-  const [textColor, setTextColor] = useColor('#fff');
-  const [bgColor, setBgColor] = useColor('#000');
-  const [readability, setReadability] = useState(tinycolor.readability('#fff', '#000'));
+  const [textColor, setTextColor] = useState('#fff');
+  const [bgColor, setBgColor] = useState('#000');
+  const [readability, setReadability] = useState(
+    new Color('#fff').contrastWCAG21(new Color('#000'))
+  );
 
   const rating = getReadabilityRating(readability);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setReadability(tinycolor.readability(textColor.hex, bgColor.hex));
-  }, [textColor.hex, bgColor.hex]);
+    setReadability(new Color(textColor).contrastWCAG21(new Color(bgColor)));
+  }, [textColor, bgColor]);
 
   return (
     <>
@@ -58,10 +58,10 @@ export const ContastChecker: React.FC = () => {
           <ClientOnly fallback={<Skeleton className="h-44" />}>
             <div
               className="p-4 shadow-xs min-h-30 h-full flex flex-col gap-2 rounded-xl"
-              style={{ backgroundColor: bgColor.hex }}
+              style={{ backgroundColor: bgColor }}
             >
               {['text-xs', 'text-sm', 'text-md', 'text-lg', 'text-xl'].map((fontSize) => (
-                <p key={fontSize} className={fontSize} style={{ color: textColor.hex }}>
+                <p key={fontSize} className={fontSize} style={{ color: textColor }}>
                   Lorem ipsum
                 </p>
               ))}

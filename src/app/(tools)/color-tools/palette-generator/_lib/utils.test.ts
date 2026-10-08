@@ -11,13 +11,14 @@ describe('getDefaultPaletteGeneratorStoreValue', () => {
   test('returns light theme with default colors', () => {
     const value = getDefaultPaletteGeneratorStoreValue();
     expect(value.theme).toBe('light');
-    expect(value.light.primaryColor.hex).toBeDefined();
-    expect(value.light.bgColor.hex).toBeDefined();
+    expect(value.light.primaryColor).toBe('#3b82f6');
+    expect(value.light.bgColor).toBe('#f2f2f2');
   });
 
   test('has dark theme defaults', () => {
     const value = getDefaultPaletteGeneratorStoreValue();
-    expect(value.dark.primaryColor).toBeDefined();
+    expect(value.dark.primaryColor).toBe('#3b82f6');
+    expect(value.dark.bgColor).toBe('#000000');
     expect(value.theme).toBe('light');
     expect(value.dark).toBeDefined();
   });

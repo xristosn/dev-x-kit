@@ -1,6 +1,32 @@
+import Color from 'colorjs.io';
 import { colorToRgbString } from '@/components/color/utils';
 import { IColor } from 'react-color-palette';
-import tinycolor from 'tinycolor2';
+
+function colorToRgb(color: Color) {
+  const { coords, alpha } = color.to('srgb');
+  return colorToRgbString({
+    r: (coords[0] ?? 0) * 255,
+    g: (coords[1] ?? 0) * 255,
+    b: (coords[2] ?? 0) * 255,
+    a: alpha,
+  });
+}
+
+function darken(color: string, amount: number): string {
+  const hsl = new Color(color).to('hsl');
+  hsl.coords[2] = Math.max(0, (hsl.coords[2] ?? 0) - amount);
+  return colorToRgb(hsl);
+}
+
+function spin(color: string, amount: number): string {
+  const hsl = new Color(color).to('hsl');
+  hsl.coords[0] = ((((hsl.coords[0] ?? 0) + amount) % 360) + 360) % 360;
+  return colorToRgb(hsl);
+}
+
+function mix(start: string, end: string, amount: number): string {
+  return colorToRgb(Color.mix(start, end, amount / 100, { space: 'srgb' }));
+}
 
 export type CssBackgroundPatternValue = {
   pattern: PatternType;
@@ -258,7 +284,7 @@ export const PATTERNS: PatternConfig[] = [
     getStyles: ({ bgColor, fgColor, size }) => {
       const c1 = colorToRgbString(fgColor.rgb);
       const c2 = colorToRgbString(bgColor.rgb);
-      const c3 = tinycolor(fgColor.hex).darken(10).toRgbString();
+      const c3 = darken(fgColor.hex, 10);
       const height = size * 0.57735; // tan(30deg)
       return {
         backgroundColor: c2,
@@ -274,7 +300,7 @@ export const PATTERNS: PatternConfig[] = [
     getStyles: ({ bgColor, fgColor, size }) => {
       const c1 = colorToRgbString(fgColor.rgb);
       const c2 = colorToRgbString(bgColor.rgb);
-      const c3 = tinycolor(fgColor.hex).darken(15).toRgbString();
+      const c3 = darken(fgColor.hex, 15);
       const g = `50%, transparent 37%, ${c1} 39% 70%, transparent 72%`;
       const t = `50%, ${c2} 40deg, ${c3} 0 140deg, ${c2} 0 180deg, transparent 0`;
       const s = `47% 50% at`;
@@ -338,7 +364,7 @@ export const PATTERNS: PatternConfig[] = [
     getStyles: ({ bgColor, fgColor, size }) => {
       const c1 = colorToRgbString(fgColor.rgb);
       const c2 = colorToRgbString(bgColor.rgb);
-      const c3 = tinycolor.mix(fgColor.hex, bgColor.hex, 50).toRgbString();
+      const c3 = mix(fgColor.hex, bgColor.hex, 50);
       const g = `${c1} 10%, ${c2} 10.5% 19%, transparent 19.5% 80.5%, ${c2} 81% 89.5%, ${c3} 90%`;
       const c = `from -90deg at 37.5% 50%, transparent 75%`;
       const l1 = `linear-gradient(145deg, ${g})`;
@@ -390,7 +416,7 @@ export const PATTERNS: PatternConfig[] = [
     getStyles: ({ bgColor, fgColor, size }) => {
       const c1 = colorToRgbString(bgColor.rgb);
       const c2 = colorToRgbString(fgColor.rgb);
-      const c3 = tinycolor(fgColor.hex).spin(-40).toRgbString();
+      const c3 = spin(fgColor.hex, -40);
       const c = `75%, ${c3} 52.72deg, transparent 0`;
       const g1 = `conic-gradient(from -116.36deg at 25% ${c})`;
       const g2 = `conic-gradient(from 63.43deg at 75% ${c})`;

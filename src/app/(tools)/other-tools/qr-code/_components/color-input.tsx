@@ -1,7 +1,6 @@
 import React from 'react';
 import { GRADIENT_PRESETS } from '@/lib/constants';
 import { ColorPopover } from '@/components/color/color-popover';
-import { ColorService, IColor } from 'react-color-palette';
 import {
   Dialog,
   DialogContent,
@@ -83,11 +82,7 @@ export function ColorInput({
           </DialogContent>
         </Dialog>
       ) : (
-        <ColorPopover
-          label="Color"
-          value={ColorService.convert('hex', color)}
-          setValue={(v) => setColor((v as IColor).hex)}
-        />
+        <ColorPopover label="Color" value={color} setValue={setColor} />
       )}
     </div>
   );

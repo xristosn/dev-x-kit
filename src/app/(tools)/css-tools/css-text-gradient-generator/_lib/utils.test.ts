@@ -32,6 +32,17 @@ describe('css-text-gradient-generator utils', () => {
       }
     });
 
+    it('preserves OKLCH and OKLab color strings in generated CSS', () => {
+      const colors = ['oklch(70% 0.3 35)', 'oklab(70% 0.1 -0.1)'];
+      const gradient = buildTextGradient({
+        ...DEFAULT_TEXT_GRADIENT_VALUE,
+        stops: colors.map((color, index) => ({ id: `stop-${index}`, color, offset: index * 100 })),
+      });
+
+      expect(gradient).toContain('oklch(70% 0.3 35) 0%');
+      expect(gradient).toContain('oklab(70% 0.1 -0.1) 100%');
+    });
+
     it('uses and normalizes a custom angle', () => {
       const gradient = buildTextGradient({
         ...DEFAULT_TEXT_GRADIENT_VALUE,
@@ -82,6 +93,20 @@ describe('css-text-gradient-generator utils', () => {
   });
 
   describe('normalizeTextGradientValue', () => {
+    it('preserves valid native CSS color strings', () => {
+      const saved = {
+        ...DEFAULT_TEXT_GRADIENT_VALUE,
+        stops: [
+          { id: 'lch', color: 'oklch(70% 0.3 35)', offset: 0 },
+          { id: 'lab', color: 'oklab(70% 0.1 -0.1)', offset: 100 },
+        ],
+      };
+
+      expect(normalizeTextGradientValue(saved).stops.map(({ color }) => color)).toEqual(
+        saved.stops.map(({ color }) => color)
+      );
+    });
+
     it('repairs malformed saved values with safe defaults', () => {
       const normalized = normalizeTextGradientValue({
         type: 'invalid',

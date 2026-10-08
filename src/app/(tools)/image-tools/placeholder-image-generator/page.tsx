@@ -7,7 +7,6 @@ import { InputWrapper } from '@/components/input-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useWebStorage } from '@/hooks/use-web-storage';
-import { ColorService, IColor } from 'react-color-palette';
 import {
   DEFAULT_IMAGE_PLACEHOLDER_STORE_VALUE,
   downloadImage,
@@ -52,8 +51,14 @@ export default function PlaceholderImageGenerator() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <InputWrapper label="Color">
             <ColorPopover
-              value={ColorService.convert('hex', value.backgroundColor)}
-              setValue={(v) => setValue((p) => ({ ...p, backgroundColor: (v as IColor).hex }))}
+              value={value.backgroundColor}
+              setValue={(nextColor) =>
+                setValue((p) => ({
+                  ...p,
+                  backgroundColor:
+                    typeof nextColor === 'function' ? nextColor(p.backgroundColor) : nextColor,
+                }))
+              }
             />
           </InputWrapper>
 

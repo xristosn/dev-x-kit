@@ -16,7 +16,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWebStorage } from '@/hooks/use-web-storage';
 import { useState } from 'react';
-import { ColorService, type IColor } from 'react-color-palette';
 import {
   DEFAULT_TEXT_GRADIENT_VALUE,
   GRADIENT_POSITIONS,
@@ -389,8 +388,13 @@ export function TextGradientGenerator() {
                 >
                   <div className="min-w-0 flex-1">
                     <ColorPopover
-                      value={ColorService.convert('hex', stop.color)}
-                      setValue={(color) => changeStop(stop.id, { color: (color as IColor).hex })}
+                      value={stop.color}
+                      setValue={(nextColor) =>
+                        changeStop(stop.id, {
+                          color:
+                            typeof nextColor === 'function' ? nextColor(stop.color) : nextColor,
+                        })
+                      }
                       id={`text-gradient-color-${index}`}
                       label={index === 0 ? 'Color' : undefined}
                       disableAlpha

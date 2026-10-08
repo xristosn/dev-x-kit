@@ -11,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useWebStorage } from '@/hooks/use-web-storage';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
-import { ColorService, IColor } from 'react-color-palette';
 import { InputSlider } from './_components/input-slider';
 import {
   generateSmoothShadow,
@@ -225,8 +224,13 @@ export default function SmoothShadowEditor() {
           <div className="border-t pt-5">
             <ColorPopover
               label="Color"
-              value={ColorService.convert('hex', value.color)}
-              setValue={(v) => setValue((p) => ({ ...p, color: (v as IColor).hex }))}
+              value={value.color}
+              setValue={(nextColor) =>
+                setValue((p) => ({
+                  ...p,
+                  color: typeof nextColor === 'function' ? nextColor(p.color) : nextColor,
+                }))
+              }
               disableAlpha
             />
           </div>

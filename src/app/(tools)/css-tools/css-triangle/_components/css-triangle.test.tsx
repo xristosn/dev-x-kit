@@ -51,6 +51,42 @@ describe('<CSSTriangle />', () => {
     expect(triangle.style.borderColor).toBe('transparent transparent rgb(74, 148, 226)');
   });
 
+  test('renders and updates the OKLCH color inputs', async () => {
+    const user = userEvent.setup();
+    render(<CSSTriangle />);
+
+    const lightness = screen.getByTestId('oklch-input-l');
+    const chroma = screen.getByTestId('oklch-input-c');
+    const hue = screen.getByTestId('oklch-input-h');
+
+    expect(lightness).toBeInTheDocument();
+    expect(chroma).toBeInTheDocument();
+    expect(hue).toBeInTheDocument();
+
+    await user.clear(chroma);
+    await user.type(chroma, '0.4');
+
+    expect(chroma).toHaveValue(0.4);
+  });
+
+  test('renders and updates the OKLab color inputs', async () => {
+    const user = userEvent.setup();
+    render(<CSSTriangle />);
+
+    const lightness = screen.getByTestId('oklab-input-l');
+    const a = screen.getByTestId('oklab-input-a');
+    const b = screen.getByTestId('oklab-input-b');
+
+    expect(lightness).toBeInTheDocument();
+    expect(a).toBeInTheDocument();
+    expect(b).toBeInTheDocument();
+
+    await user.clear(a);
+    await user.type(a, '0.2');
+
+    expect(a).toHaveValue(0.2);
+  });
+
   test('updates the triangle and color preview when the color changes', async () => {
     const user = userEvent.setup();
     render(<CSSTriangle />);
@@ -60,7 +96,7 @@ describe('<CSSTriangle />', () => {
     await user.paste('#ff0000');
     await user.tab();
 
-    expect(hexInput).toHaveValue('#FF0000');
+    expect(hexInput).toHaveValue('#ff0000');
     expect(screen.getByTestId('css-triangle-color-preview').style.backgroundColor).toBe(
       'rgb(255, 0, 0)'
     );

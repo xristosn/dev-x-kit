@@ -1,9 +1,8 @@
 'use client';
 
-import { ColorService, IColor } from 'react-color-palette';
 import { Input } from '../ui/input';
 import { ColorInputWrapper } from './color-input-wrapper';
-import { IColorHsv } from './utils';
+import { colorFromChannels, getColorChannels, IColorHsv } from './utils';
 import { useColorInput } from './_hooks/use-color-input';
 
 const isValidHsvColor = ({ h, s, v, a }: IColorHsv) =>
@@ -16,22 +15,35 @@ const isValidHsvColor = ({ h, s, v, a }: IColorHsv) =>
   a <= 1;
 
 export type HSVInputProps = {
-  value: IColor;
-  setValue: (color: IColor) => void;
+  value: string;
+  setValue: (color: string) => void;
   noLabel?: boolean;
   disableAlpha?: boolean;
 };
 
-export const HSVInput: React.FC<HSVInputProps> = ({ value, setValue, noLabel, disableAlpha }) => {
-  const { color, applyChange, error } = useColorInput(value.hsv, value.hsv, isValidHsvColor);
+function toHsv(value: string): IColorHsv {
+  const channels = getColorChannels(value, 'hsv');
+  const coords = channels?.coords ?? [0, 0, 0];
+  return {
+    h: coords[0] ?? 0,
+    s: coords[1] ?? 0,
+    v: coords[2] ?? 0,
+    a: channels?.alpha ?? 1,
+  };
+}
 
-  const onColorChange = (prop: keyof IColorHsv, value: string) => {
-    let finalValue = Number(value);
-    const max = prop === 'h' ? 360 : 100;
-    if (finalValue > max) finalValue = max;
-    const updatedColor = { ...color, [prop]: finalValue };
-    const hasError = applyChange(updatedColor);
-    if (!hasError) setValue(ColorService.convert('hsv', updatedColor));
+export const HSVInput: React.FC<HSVInputProps> = ({ value, setValue, noLabel, disableAlpha }) => {
+  const initial = toHsv(value);
+  const { color, applyChange, error } = useColorInput(initial, initial, isValidHsvColor);
+
+  const onColorChange = (prop: keyof IColorHsv, raw: string) => {
+    let next = Number(raw);
+    const max = prop === 'h' ? 360 : prop === 'a' ? 1 : 100;
+    if (next > max) next = max;
+    const updated = { ...color, [prop]: next };
+    if (!applyChange(updated)) {
+      setValue(colorFromChannels('hsv', [updated.h, updated.s, updated.v], updated.a));
+    }
   };
 
   return (
@@ -43,7 +55,7 @@ export const HSVInput: React.FC<HSVInputProps> = ({ value, setValue, noLabel, di
       setValue={setValue}
       colorMode="hsv"
     >
-      <div className="flex gap-1" onBlur={() => setValue(ColorService.convert('hsv', color))}>
+      <div className="flex gap-1">
         <Input
           data-testid="hsv-input-h"
           type="number"
@@ -81,7 +93,7 @@ export const HSVInput: React.FC<HSVInputProps> = ({ value, setValue, noLabel, di
             min={0}
             max={1}
             step={0.1}
-            pattern="^(0(\.[0-9]{1,2})?|1(\.0{1,2})?)$"
+            pattern="^(0(\\.[0-9]{1,2})?|1(\\.0{1,2})?)$"
             placeholder="Alpha"
             value={Number(color.a.toFixed(2)).toString()}
             onChange={(e) => onColorChange('a', e.target.value)}

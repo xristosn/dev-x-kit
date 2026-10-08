@@ -98,7 +98,7 @@ export const NAVIGATION = new NavigationManager([
         fullName: 'Color Contrast Checker',
         path: '/color-tools/contrast-checker',
         icon: <Baseline />,
-        sourceUrl: 'https://www.npmjs.com/package/tinycolor2',
+        sourceUrl: 'https://colorjs.io/',
         summary:
           'Check foreground and background color pairs against WCAG AA and AAA contrast requirements.',
       },

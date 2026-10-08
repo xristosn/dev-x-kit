@@ -10,16 +10,53 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useWebStorage } from '@/hooks/use-web-storage';
 import { cn } from '@/lib/utils';
 import { Moon, Sun } from 'lucide-react';
-import { IColor } from 'react-color-palette';
 import { ColorDialog } from './_components/color-dialog';
 import { PalettePreview } from './_components/palette-preview';
-import {
-  generatePalettes,
-  getDefaultPaletteGeneratorStoreValue,
-  paletteToChakraV3,
-  paletteToCss,
-  paletteToText,
-} from './_lib/utils';
+import { generatePalettes, paletteToChakraV3, paletteToCss, paletteToText } from './_lib/utils';
+
+type PaletteGeneratorStoreValue = {
+  theme: 'light' | 'dark';
+  light: { primaryColor: string; bgColor: string };
+  dark: { primaryColor: string; bgColor: string };
+};
+
+const DEFAULT_PALETTE_GENERATOR_STORE_VALUE: PaletteGeneratorStoreValue = {
+  theme: 'light',
+  light: { primaryColor: '#3b82f6', bgColor: '#f2f2f2' },
+  dark: { primaryColor: '#3b82f6', bgColor: '#000000' },
+};
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
+}
+
+function colorString(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function normalizePaletteGeneratorStoreValue(value: unknown): PaletteGeneratorStoreValue {
+  const stored = asRecord(value);
+  const light = asRecord(stored.light);
+  const dark = asRecord(stored.dark);
+
+  return {
+    theme: stored.theme === 'dark' ? 'dark' : 'light',
+    light: {
+      primaryColor: colorString(
+        light.primaryColor,
+        DEFAULT_PALETTE_GENERATOR_STORE_VALUE.light.primaryColor
+      ),
+      bgColor: colorString(light.bgColor, DEFAULT_PALETTE_GENERATOR_STORE_VALUE.light.bgColor),
+    },
+    dark: {
+      primaryColor: colorString(
+        dark.primaryColor,
+        DEFAULT_PALETTE_GENERATOR_STORE_VALUE.dark.primaryColor
+      ),
+      bgColor: colorString(dark.bgColor, DEFAULT_PALETTE_GENERATOR_STORE_VALUE.dark.bgColor),
+    },
+  };
+}
 
 const FAQS = [
   {
@@ -45,16 +82,14 @@ const FAQS = [
 ] satisfies readonly FaqItem[];
 
 export default function PaletteGenerator() {
-  const [value, setValue] = useWebStorage(
+  const [storedValue, setValue] = useWebStorage<PaletteGeneratorStoreValue>(
     'palette-generator',
     'infer',
-    getDefaultPaletteGeneratorStoreValue()
+    DEFAULT_PALETTE_GENERATOR_STORE_VALUE
   );
+  const value = normalizePaletteGeneratorStoreValue(storedValue);
 
-  const palette = generatePalettes(
-    value[value.theme].primaryColor.hex,
-    value[value.theme].bgColor.hex
-  );
+  const palette = generatePalettes(value[value.theme].primaryColor, value[value.theme].bgColor);
 
   return (
     <>
@@ -93,10 +128,16 @@ export default function PaletteGenerator() {
           <ColorPopover
             label="Primary Color"
             value={value[value.theme].primaryColor}
-            setValue={(v) =>
+            setValue={(nextColor) =>
               setValue((p) => ({
                 ...p,
-                [p.theme]: { ...p[p.theme], primaryColor: v as IColor },
+                [p.theme]: {
+                  ...p[p.theme],
+                  primaryColor:
+                    typeof nextColor === 'function'
+                      ? nextColor(p[p.theme].primaryColor)
+                      : nextColor,
+                },
               }))
             }
             disableAlpha
@@ -105,10 +146,14 @@ export default function PaletteGenerator() {
           <ColorPopover
             label="Background Color"
             value={value[value.theme].bgColor}
-            setValue={(v) =>
+            setValue={(nextColor) =>
               setValue((p) => ({
                 ...p,
-                [p.theme]: { ...p[p.theme], bgColor: v as IColor },
+                [p.theme]: {
+                  ...p[p.theme],
+                  bgColor:
+                    typeof nextColor === 'function' ? nextColor(p[p.theme].bgColor) : nextColor,
+                },
               }))
             }
             disableAlpha
@@ -151,12 +196,7 @@ export default function PaletteGenerator() {
           {
             language: 'CSS',
             convert: () =>
-              paletteToCss(
-                palette.name,
-                palette.palette,
-                value[value.theme].bgColor.hex,
-                value.theme
-              ),
+              paletteToCss(palette.name, palette.palette, value[value.theme].bgColor, value.theme),
           },
           {
             language: 'Chakra UI v3',
@@ -164,14 +204,13 @@ export default function PaletteGenerator() {
               paletteToChakraV3(
                 palette.name,
                 palette.palette,
-                value[value.theme].bgColor.hex,
+                value[value.theme].bgColor,
                 value.theme
               ),
           },
           {
             language: 'Text',
-            convert: () =>
-              paletteToText(palette.name, palette.palette, value[value.theme].bgColor.hex),
+            convert: () => paletteToText(palette.name, palette.palette, value[value.theme].bgColor),
           },
         ]}
       />

@@ -1,29 +1,31 @@
 'use client';
 
-import { ColorService, IColor } from 'react-color-palette';
 import { Input } from '../ui/input';
 import { ColorInputWrapper } from './color-input-wrapper';
-import { stringToHexColor } from './utils';
+import { colorToString, parseColor, stringToHexColor } from './utils';
 import { useColorInput } from './_hooks/use-color-input';
 
 export type HexInputProps = {
-  value: IColor;
-  setValue: (color: IColor) => void;
+  value: string;
+  setValue: (color: string) => void;
   noLabel?: boolean;
 };
 
 export const HexInput: React.FC<HexInputProps> = ({ value, setValue, noLabel }) => {
+  const hexValue = colorToString(value, 'hex');
   const { color, applyChange, error } = useColorInput(
-    value.hex,
-    value.hex,
+    hexValue,
+    hexValue,
     (hex) => stringToHexColor(hex) !== null
   );
 
-  const onColorChange = (value: string) => {
-    let finalValue = value;
+  const onColorChange = (next: string) => {
+    let finalValue = next;
     if (finalValue && !finalValue.startsWith('#')) finalValue = `#${finalValue}`;
-    const hasError = applyChange(finalValue);
-    if (!hasError) setValue(ColorService.convert('hex', finalValue));
+    if (!applyChange(finalValue)) {
+      const parsed = parseColor(finalValue);
+      if (parsed) setValue(parsed.to('srgb').toString({ format: 'hex', inGamut: true }));
+    }
   };
 
   return (
@@ -44,7 +46,6 @@ export const HexInput: React.FC<HexInputProps> = ({ value, setValue, noLabel }) 
         type="text"
         value={color}
         onChange={(e) => onColorChange(e.target.value.trim())}
-        onBlur={() => !error && setValue(ColorService.convert('hex', color))}
       />
     </ColorInputWrapper>
   );

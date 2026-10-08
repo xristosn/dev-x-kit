@@ -4,16 +4,21 @@ import { AlertTriangle } from 'lucide-react';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { CopyIconButton } from '../copy-button';
-import { ColorService, IColor } from 'react-color-palette';
-import { colorToString, stringToHexColor, stringToHsvColor, stringToRgbColor } from './utils';
+import {
+  colorFromChannels,
+  colorToString,
+  isValidColor,
+  stringToHexColor,
+  stringToHsvColor,
+} from './utils';
 
 export type ColorInputWrapperProps = React.PropsWithChildren & {
   id: string;
   label: string;
   error: boolean;
-  value: IColor;
-  setValue: (color: IColor) => void;
-  colorMode: 'rgb' | 'hex' | 'hsv';
+  value: string;
+  setValue: (color: string) => void;
+  colorMode: 'rgb' | 'hex' | 'hsv' | 'oklch' | 'oklab';
 };
 
 export const ColorInputWrapper: React.FC<ColorInputWrapperProps> = ({
@@ -27,25 +32,18 @@ export const ColorInputWrapper: React.FC<ColorInputWrapperProps> = ({
 }) => {
   const onPaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
-
-    const data = e.clipboardData.getData('text/plain');
-
-    if (!data?.trim()) return;
+    const data = e.clipboardData.getData('text/plain').trim();
+    if (!data) return;
 
     const hexColor = stringToHexColor(data);
-    if (hexColor) {
-      return setValue(ColorService.convert('hex', hexColor));
-    }
-
-    const rgbColor = stringToRgbColor(data);
-    if (rgbColor) {
-      return setValue(ColorService.convert('rgb', rgbColor));
-    }
+    if (hexColor) return setValue(hexColor);
 
     const hsvColor = stringToHsvColor(data);
     if (hsvColor) {
-      return setValue(ColorService.convert('hsv', hsvColor));
+      return setValue(colorFromChannels('hsv', [hsvColor.h, hsvColor.s, hsvColor.v], hsvColor.a));
     }
+
+    if (isValidColor(data)) setValue(data);
   };
 
   return (

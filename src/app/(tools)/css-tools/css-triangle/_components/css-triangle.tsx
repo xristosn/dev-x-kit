@@ -3,6 +3,7 @@
 import { ClientOnly } from '@/components/client-only';
 import { HexInput } from '@/components/color/hex-input';
 import { HSVInput } from '@/components/color/hsv-input';
+import { OkColorInput } from '@/components/color/ok-color-input';
 import { RGBInput } from '@/components/color/rgb-input';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,7 +16,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWebStorage } from '@/hooks/use-web-storage';
 import { useEffect, useRef } from 'react';
-import { ColorPicker, ColorService, IColor } from 'react-color-palette';
+import { ColorPicker, ColorService } from 'react-color-palette';
 import 'react-color-palette/css';
 import { Direction, DIRECTIONS, getTriangleStyle } from '../_lib/utils';
 import { CodeDisplay, CodeDisplayPreset } from '@/components/code-display';
@@ -25,42 +26,53 @@ type Options = {
   direction: Direction;
   width: number;
   height: number;
-  color: IColor;
+  color: string;
 };
 
 const DEFAULT_VALUE: Options = {
   direction: 'Right',
   width: 200,
   height: 200,
-  color: ColorService.convert('hex', '#4a94e2'),
+  color: '#4a94e2',
 };
 
 export const CSSTriangle: React.FC = () => {
   const [value, setValue] = useWebStorage('css-triangle', 'infer', DEFAULT_VALUE);
   const triangleRef = useRef<HTMLDivElement>(null);
+  const color = typeof value.color === 'string' ? value.color : DEFAULT_VALUE.color;
 
   useEffect(() => {
     if (triangleRef.current) {
-      const style = getTriangleStyle(value.direction, value.width, value.height, value.color);
+      const style = getTriangleStyle(value.direction, value.width, value.height, color);
       triangleRef.current.style.borderWidth = style.borderWidth;
       triangleRef.current.style.borderColor = style.borderColor;
     }
-  }, [value]);
+  }, [color, value.direction, value.height, value.width]);
 
   return (
     <>
       <div className="bg-card shadow-sm p-4 rounded-xl flex flex-col gap-2">
         <ClientOnly fallback={<Skeleton className="h-60" />}>
           <ColorPicker
-            color={value.color}
-            onChange={(c) => setValue((p) => ({ ...p, color: c }))}
+            color={ColorService.convert('hex', color)}
+            onChange={(c) => setValue((p) => ({ ...p, color: c.hex }))}
             hideInput
           />
         </ClientOnly>
 
-        <HexInput value={value.color} setValue={(c) => setValue((p) => ({ ...p, color: c }))} />
-        <RGBInput value={value.color} setValue={(c) => setValue((p) => ({ ...p, color: c }))} />
-        <HSVInput value={value.color} setValue={(c) => setValue((p) => ({ ...p, color: c }))} />
+        <HexInput value={color} setValue={(color) => setValue((p) => ({ ...p, color }))} />
+        <RGBInput value={color} setValue={(color) => setValue((p) => ({ ...p, color }))} />
+        <HSVInput value={color} setValue={(color) => setValue((p) => ({ ...p, color }))} />
+        <OkColorInput
+          value={color}
+          setValue={(color) => setValue((p) => ({ ...p, color }))}
+          space="oklch"
+        />
+        <OkColorInput
+          value={color}
+          setValue={(color) => setValue((p) => ({ ...p, color }))}
+          space="oklab"
+        />
       </div>
 
       <div className="bg-card shadow-sm p-4 rounded-xl flex gap-6 items-center">
@@ -124,7 +136,7 @@ export const CSSTriangle: React.FC = () => {
             <div
               data-testid="css-triangle-color-preview"
               className="h-8 w-full rounded-md"
-              style={{ backgroundColor: value.color.hex }}
+              style={{ backgroundColor: color }}
             />
           </ClientOnly>
         </div>
@@ -144,7 +156,7 @@ export const CSSTriangle: React.FC = () => {
 
       <CodeDisplay
         code={`const styles = ${JSON.stringify(
-          getTriangleStyle(value.direction, value.width, value.height, value.color),
+          getTriangleStyle(value.direction, value.width, value.height, color),
           null,
           2
         )}`}

@@ -6,6 +6,10 @@ import {
   colorToRgbString,
   stringToRgbColor,
   colorToString,
+  colorToCss,
+  colorFromChannels,
+  isValidColor,
+  parseColor,
   sortStops,
   moveGradientStop,
   getGradientColor,
@@ -258,32 +262,48 @@ describe('color utils', () => {
     });
   });
 
+  describe('Color.js helpers', () => {
+    it.each(['oklch(70% 0.3 35)', 'oklab(70% 0.1 -0.1)', 'color(display-p3 1 0.2 0.1)'])(
+      'accepts CSS color %s',
+      (value) => {
+        expect(isValidColor(value)).toBe(true);
+        expect(parseColor(value)).not.toBeNull();
+      }
+    );
+
+    it('preserves authored out-of-sRGB OKLCH when no conversion is requested', () => {
+      const authored = 'oklch(70% 0.4 35)';
+      expect(colorToCss(authored)).toBe(authored);
+    });
+
+    it('serializes converted colors in native OKLCH without gamut mapping', () => {
+      const authored = 'oklch(70% 0.4 35)';
+      expect(colorToCss(authored, 'oklch')).toMatch(/^oklch\(/);
+      expect(parseColor(colorToCss(authored, 'oklch'))).not.toBeNull();
+    });
+
+    it('creates a color string from edited OKLab channels', () => {
+      const value = colorFromChannels('oklab', [0.7, 0.1, -0.1], 0.5);
+      expect(value).toMatch(/^oklab\(/);
+      expect(parseColor(value)?.alpha).toBeCloseTo(0.5);
+    });
+  });
+
   describe('colorToString', () => {
     it('returns rgb string for rgb mode', () => {
-      const color = {
-        hex: '#ff0000',
-        rgb: { r: 255, g: 0, b: 0, a: 1 },
-        hsv: { h: 0, s: 100, v: 100, a: 1 },
-      };
-      expect(colorToString(color, 'rgb')).toBe('rgb(255, 0, 0)');
+      expect(colorToString('#ff0000', 'rgb')).toBe('rgb(255, 0, 0)');
     });
 
     it('returns hsv string for hsv mode', () => {
-      const color = {
-        hex: '#ff0000',
-        rgb: { r: 255, g: 0, b: 0, a: 1 },
-        hsv: { h: 0, s: 100, v: 100, a: 1 },
-      };
-      expect(colorToString(color, 'hsv')).toBe('hsv(0, 100, 100, 1)');
+      expect(colorToString('#ff0000', 'hsv')).toBe('hsv(0, 100, 100, 1)');
+    });
+
+    it('formats achromatic colors whose HSV hue is powerless', () => {
+      expect(colorToString('#808080', 'hsv')).toBe('hsv(0, 0, 50.2, 1)');
     });
 
     it('returns hex string for hex mode', () => {
-      const color = {
-        hex: '#ff0000',
-        rgb: { r: 255, g: 0, b: 0, a: 1 },
-        hsv: { h: 0, s: 100, v: 100, a: 1 },
-      };
-      expect(colorToString(color, 'hex')).toBe('#ff0000');
+      expect(colorToString('#ff0000', 'hex')).toBe('#ff0000');
     });
   });
 

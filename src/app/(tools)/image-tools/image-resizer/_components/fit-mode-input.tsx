@@ -4,7 +4,6 @@ import { ColorPopover } from '@/components/color/color-popover';
 import { InputWrapper } from '@/components/input-wrapper';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ColorService, IColor } from 'react-color-palette';
 import { FitMode, ImageResizerStoreValue } from '../_lib/utils';
 
 export type FitModeInputProps = {
@@ -53,8 +52,13 @@ export const FitModeInput: React.FC<FitModeInputProps> = ({ value, setValue }) =
         data-testid="image-resizer-background-color"
       >
         <ColorPopover
-          value={ColorService.convert('hex', value.background)}
-          setValue={(v) => setValue((p) => ({ ...p, background: (v as IColor).hex }))}
+          value={value.background}
+          setValue={(nextColor) =>
+            setValue((p) => ({
+              ...p,
+              background: typeof nextColor === 'function' ? nextColor(p.background) : nextColor,
+            }))
+          }
         />
       </InputWrapper>
     )}

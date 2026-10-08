@@ -1,3 +1,5 @@
+import { isValidColor } from '@/components/color/utils';
+
 export type TextGradientType = 'linear' | 'radial';
 export type TextGradientDirection =
   | 'custom'
@@ -232,7 +234,6 @@ export const TEXT_GRADIENT_PRESETS: { id: string; label: string; value: TextGrad
   },
 ];
 
-const validColors = /^#(?:[\da-f]{3}|[\da-f]{6}|[\da-f]{8})$/i;
 const validDirections = new Set<string>(['custom', ...LINEAR_DIRECTIONS.map(({ value }) => value)]);
 const validPositions = new Set<string>(GRADIENT_POSITIONS.map(({ value }) => value));
 const validSizes = new Set<string>(RADIAL_SIZES.map(({ value }) => value));
@@ -253,7 +254,7 @@ export function normalizeTextGradientValue(value: unknown): TextGradientValue {
     return {
       id: typeof item.id === 'string' ? item.id : `stop-${index}`,
       color:
-        typeof item.color === 'string' && validColors.test(item.color)
+        typeof item.color === 'string' && isValidColor(item.color)
           ? item.color
           : DEFAULT_TEXT_GRADIENT_VALUE.stops[Math.min(index, 1)].color,
       offset: Number.isFinite(rawOffset) ? clamp(rawOffset, 0, 100) : index === 0 ? 0 : 100,
@@ -285,7 +286,7 @@ export function normalizeTextGradientValue(value: unknown): TextGradientValue {
 export function buildTextGradient(value: TextGradientValue): string {
   const stops = value.stops
     .map((stop, index) => ({
-      color: validColors.test(stop.color)
+      color: isValidColor(stop.color)
         ? stop.color
         : DEFAULT_TEXT_GRADIENT_VALUE.stops[index % 2].color,
       offset: Number.isFinite(stop.offset) ? clamp(stop.offset, 0, 100) : 0,

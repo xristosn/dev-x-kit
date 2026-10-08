@@ -14,7 +14,6 @@ import JSZip from 'jszip';
 import { Check } from 'lucide-react';
 import prettyBytes from 'pretty-bytes';
 import { useState } from 'react';
-import { ColorService, IColor } from 'react-color-palette';
 import {
   ConversionState,
   ConvertedFile,
@@ -193,8 +192,14 @@ export default function ImageConverter() {
                   helperText="Choose a color to fill transparent areas when converting to an opaque format (e.g., PNG to JPEG)."
                 >
                   <ColorPopover
-                    value={ColorService.convert('hex', value.opaqueColor)}
-                    setValue={(c) => setValue((p) => ({ ...p, opaqueColor: (c as IColor).hex }))}
+                    value={value.opaqueColor}
+                    setValue={(nextColor) =>
+                      setValue((p) => ({
+                        ...p,
+                        opaqueColor:
+                          typeof nextColor === 'function' ? nextColor(p.opaqueColor) : nextColor,
+                      }))
+                    }
                     disableAlpha
                   />
                 </InputWrapper>

@@ -1,4 +1,3 @@
-import { ColorService } from 'react-color-palette';
 import { describe, expect, test } from 'vitest';
 import { getTriangleStyle } from './utils';
 
@@ -13,7 +12,7 @@ describe('getTriangleStyle', () => {
     ['Down Right', '0 0 100px 200px', 'transparent transparent #123456 transparent'],
     ['Up', '0 100px 100px 100px', 'transparent transparent #123456 transparent'],
   ] as const)('returns the border styles for %s', (direction, borderWidth, borderColor) => {
-    const color = ColorService.convert('hex', '#123456');
+    const color = '#123456';
 
     expect(getTriangleStyle(direction, 200, 100, color)).toEqual({
       width: '0',

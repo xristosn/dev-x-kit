@@ -4,22 +4,23 @@ import { CircularSlider } from '@/components/circular-slider';
 import { ClientOnly } from '@/components/client-only';
 import { HexInput } from '@/components/color/hex-input';
 import { HSVInput } from '@/components/color/hsv-input';
+import { OkColorInput } from '@/components/color/ok-color-input';
 import { RGBInput } from '@/components/color/rgb-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { GRADIENT_PRESETS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { GradientStop, GradientValue } from '@/types/gradient';
 import { Delete } from 'lucide-react';
 import { useState } from 'react';
-import { ColorService, ColorPicker } from 'react-color-palette';
+import { ColorPicker, ColorService } from 'react-color-palette';
 import 'react-color-palette/css';
 import { v4 as uuid } from 'uuid';
+import { CodeDisplay, CodeDisplayPreset } from '../code-display';
+import { Label } from '../ui/label';
 import { GradientPreview } from './gradient-preview';
 import { GradientSlider } from './gradient-slider';
 import { CssGradientImageFormat, cssGradientToImage, getGradientColor, sortStops } from './utils';
-import { GRADIENT_PRESETS } from '@/lib/constants';
-import { CodeDisplay, CodeDisplayPreset } from '../code-display';
-import { Label } from '../ui/label';
 
 export type GradientEditorProps = {
   value: GradientValue;
@@ -200,8 +201,8 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
                   <div data-testid="gradient-editor-stop-hex-input">
                     <HexInput
                       noLabel
-                      value={ColorService.convert('hex', stop.color)}
-                      setValue={(c) => onStopChange('color', c.hex)}
+                      value={stop.color}
+                      setValue={(color) => onStopChange('color', color)}
                     />
                   </div>
 
@@ -249,23 +250,27 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
             color={ColorService.convert('hex', currentStop.color)}
             onChange={(c) => onStopChange('color', c.hex)}
             hideInput
+            height={386}
           />
         </ClientOnly>
 
         <div className="flex flex-col gap-8">
-          <HexInput
-            value={ColorService.convert('hex', currentStop.color)}
-            setValue={(c) => onStopChange('color', c.hex)}
+          <HexInput value={currentStop.color} setValue={(color) => onStopChange('color', color)} />
+
+          <RGBInput value={currentStop.color} setValue={(color) => onStopChange('color', color)} />
+
+          <HSVInput value={currentStop.color} setValue={(color) => onStopChange('color', color)} />
+
+          <OkColorInput
+            value={currentStop.color}
+            setValue={(color) => onStopChange('color', color)}
+            space="oklch"
           />
 
-          <RGBInput
-            value={ColorService.convert('hex', currentStop.color)}
-            setValue={(c) => onStopChange('color', c.hex)}
-          />
-
-          <HSVInput
-            value={ColorService.convert('hex', currentStop.color)}
-            setValue={(c) => onStopChange('color', c.hex)}
+          <OkColorInput
+            value={currentStop.color}
+            setValue={(color) => onStopChange('color', color)}
+            space="oklab"
           />
         </div>
       </div>

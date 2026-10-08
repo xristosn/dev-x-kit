@@ -1,9 +1,8 @@
 'use client';
 
-import { ColorService, IColor } from 'react-color-palette';
 import { Input } from '../ui/input';
 import { ColorInputWrapper } from './color-input-wrapper';
-import { IColorRgb } from './utils';
+import { colorFromChannels, getColorChannels, IColorRgb } from './utils';
 import { useColorInput } from './_hooks/use-color-input';
 
 const isValidRgbColor = ({ r, g, b, a }: IColorRgb) =>
@@ -13,21 +12,33 @@ const isValidRgbColor = ({ r, g, b, a }: IColorRgb) =>
   a <= 1;
 
 export type RGBInputProps = {
-  value: IColor;
-  setValue: (color: IColor) => void;
+  value: string;
+  setValue: (color: string) => void;
   noLabel?: boolean;
   disableAlpha?: boolean;
 };
 
-export const RGBInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, disableAlpha }) => {
-  const { color, applyChange, error } = useColorInput(value.rgb, value.rgb, isValidRgbColor);
+function toRgb(value: string): IColorRgb {
+  const channels = getColorChannels(value, 'srgb');
+  const coords = channels?.coords ?? [0, 0, 0];
+  const clamp = (channel: number | null) => Math.max(0, Math.min(255, (channel ?? 0) * 255));
+  return { r: clamp(coords[0]), g: clamp(coords[1]), b: clamp(coords[2]), a: channels?.alpha ?? 1 };
+}
 
-  const onColorChange = (prop: keyof IColorRgb, value: string) => {
-    let finalValue = Number(value);
-    if (finalValue > 255) finalValue = 255;
-    const updatedColor = { ...color, [prop]: finalValue };
-    const hasError = applyChange(updatedColor);
-    if (!hasError) setValue(ColorService.convert('rgb', updatedColor));
+export const RGBInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, disableAlpha }) => {
+  const initial = toRgb(value);
+  const { color, applyChange, error } = useColorInput(initial, initial, isValidRgbColor);
+
+  const onColorChange = (prop: keyof IColorRgb, raw: string) => {
+    let next = Number(raw);
+    if (prop !== 'a' && next > 255) next = 255;
+    if (prop === 'a' && next > 1) next = 1;
+    const updated = { ...color, [prop]: next };
+    if (!applyChange(updated)) {
+      setValue(
+        colorFromChannels('srgb', [updated.r / 255, updated.g / 255, updated.b / 255], updated.a)
+      );
+    }
   };
 
   return (
@@ -39,7 +50,7 @@ export const RGBInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, di
       setValue={setValue}
       colorMode="rgb"
     >
-      <div className="flex gap-1" onBlur={() => setValue(ColorService.convert('rgb', color))}>
+      <div className="flex gap-1">
         <Input
           type="number"
           min={0}
@@ -77,7 +88,7 @@ export const RGBInput: React.FC<RGBInputProps> = ({ value, setValue, noLabel, di
             min={0}
             max={1}
             step={0.1}
-            pattern="^(0(\.[0-9]{1,2})?|1(\.0{1,2})?)$"
+            pattern="^(0(\\.[0-9]{1,2})?|1(\\.0{1,2})?)$"
             placeholder="Alpha"
             value={Number(color.a.toFixed(2)).toString()}
             onChange={(e) => onColorChange('a', e.target.value)}

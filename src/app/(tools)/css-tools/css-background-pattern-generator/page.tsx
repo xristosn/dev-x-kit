@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWebStorage } from '@/hooks/use-web-storage';
-import { ColorService, IColor } from 'react-color-palette';
+import { ColorService } from 'react-color-palette';
 import { DEFAULT_BACKGROUND_PATTERN_VALUE, PATTERNS, PatternType } from './_lib/utils';
 
 const FAQS = [
@@ -96,8 +96,13 @@ export default function CssBackgroundPatternGenerator() {
               <InputWrapper label="Foreground">
                 <ClientOnly fallback={<Skeleton className="w-full h-9" />}>
                   <ColorPopover
-                    value={ColorService.convert('hex', value.fgColor)}
-                    setValue={(v) => setValue((p) => ({ ...p, fgColor: (v as IColor).hex }))}
+                    value={value.fgColor}
+                    setValue={(nextColor) =>
+                      setValue((p) => ({
+                        ...p,
+                        fgColor: typeof nextColor === 'function' ? nextColor(p.fgColor) : nextColor,
+                      }))
+                    }
                     defaultMode="rgb"
                   />
                 </ClientOnly>
@@ -106,8 +111,13 @@ export default function CssBackgroundPatternGenerator() {
               <InputWrapper label="Background">
                 <ClientOnly fallback={<Skeleton className="w-full h-9" />}>
                   <ColorPopover
-                    value={ColorService.convert('hex', value.bgColor)}
-                    setValue={(v) => setValue((p) => ({ ...p, bgColor: (v as IColor).hex }))}
+                    value={value.bgColor}
+                    setValue={(nextColor) =>
+                      setValue((p) => ({
+                        ...p,
+                        bgColor: typeof nextColor === 'function' ? nextColor(p.bgColor) : nextColor,
+                      }))
+                    }
                     defaultMode="rgb"
                   />
                 </ClientOnly>

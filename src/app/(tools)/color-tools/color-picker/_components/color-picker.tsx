@@ -3,21 +3,20 @@
 import { ClientOnly } from '@/components/client-only';
 import { HexInput } from '@/components/color/hex-input';
 import { HSVInput } from '@/components/color/hsv-input';
+import { OkColorInput } from '@/components/color/ok-color-input';
 import { RGBInput } from '@/components/color/rgb-input';
 import { CopyButton } from '@/components/copy-button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWebStorage } from '@/hooks/use-web-storage';
-import { ColorService, ColorPicker as ReactColorPicker } from 'react-color-palette';
+import { ColorService, IColor, ColorPicker as ReactColorPicker } from 'react-color-palette';
 import 'react-color-palette/css';
 import { SHADES } from '../_lib/constants';
 import { getShadeColors } from '../_lib/utils';
 
 export const ColorPicker: React.FC = () => {
-  const [color, setColor] = useWebStorage(
-    'color-picker',
-    'infer',
-    ColorService.convert('hex', '#2d2bb6')
-  );
+  const [color, setStoredColor] = useWebStorage('color-picker', 'infer', '#2d2bb6');
+  const pickerColor = ColorService.convert('hex', color);
+  const setColor = (next: string) => setStoredColor(next);
 
   return (
     <>
@@ -27,17 +26,25 @@ export const ColorPicker: React.FC = () => {
             Color Picker
           </h2>
 
-          <ClientOnly fallback={<Skeleton className="w-full h-68" />}>
-            <ReactColorPicker color={color} onChange={setColor} hideInput />
-          </ClientOnly>
+          <div className="h-full">
+            <ClientOnly fallback={<Skeleton className="w-full h-full" />}>
+              <ReactColorPicker
+                color={pickerColor}
+                onChange={(picked: IColor) => setColor(picked.hex)}
+                hideInput
+                height={386}
+              />
+            </ClientOnly>
+          </div>
         </div>
 
         <div className="flex flex-col gap-6 bg-card p-4 shadow-md rounded-xl md:w-1/2">
           <h2 className="text-xl">Colors</h2>
-
           <HexInput value={color} setValue={setColor} />
           <RGBInput value={color} setValue={setColor} />
           <HSVInput value={color} setValue={setColor} />
+          <OkColorInput value={color} setValue={setColor} space="oklch" />
+          <OkColorInput value={color} setValue={setColor} space="oklab" />
         </div>
       </div>
 
@@ -48,13 +55,12 @@ export const ColorPicker: React.FC = () => {
             className="flex flex-col gap-4 bg-card p-4 shadow-sm rounded-xl"
           >
             <h2 className="text-xl">{shade.label}</h2>
-
             <ClientOnly
               fallback={Array.from({ length: 5 }).map((_, idx) => (
                 <Skeleton key={idx} className="w-full h-2" />
               ))}
             >
-              {getShadeColors(color.hex, shade.colorInstance).map(([bg, fg], idx) => (
+              {getShadeColors(color, shade.colorInstance).map(([bg, fg], idx) => (
                 <CopyButton
                   key={idx}
                   size="sm"

@@ -1,129 +1,127 @@
+import Color from 'colorjs.io';
 import { GradientStop, GradientValue } from '@/types/gradient';
-import { IColor } from 'react-color-palette';
 
-export type IColorHsv = IColor['hsv'];
-export type IColorRgb = IColor['rgb'];
-export type ColorMode = 'rgb' | 'hex' | 'hsv';
+export type ColorValue = string;
+export type IColorHsv = { h: number; s: number; v: number; a: number };
+export type IColorRgb = { r: number; g: number; b: number; a: number };
+export type ColorMode = 'rgb' | 'hex' | 'hsv' | 'oklch' | 'oklab';
+
+export function parseColor(value: string): Color | null {
+  return typeof value === 'string' && value.trim() ? Color.try(value.trim()) : null;
+}
+
+export function isValidColor(value: string): boolean {
+  return parseColor(value) !== null;
+}
+
+export function colorToCss(value: string, space?: 'oklch' | 'oklab'): string {
+  const color = parseColor(value);
+  if (!color) return value;
+  if (!space) return value.trim();
+
+  return color.to(space).toString({ format: space, inGamut: false });
+}
+
+export function getColorChannels(value: string, space: 'srgb' | 'hsv' | 'oklch' | 'oklab') {
+  const color = parseColor(value);
+  if (!color) return null;
+
+  const converted = color.to(space);
+  return { coords: converted.coords, alpha: converted.alpha };
+}
+
+export function colorFromChannels(
+  space: 'srgb' | 'hsv' | 'oklch' | 'oklab',
+  coords: [number, number, number],
+  alpha: number
+): string {
+  const color = new Color(space, coords, alpha);
+  return space === 'hsv'
+    ? color.to('srgb').toString({ format: 'rgb', inGamut: true })
+    : color.toString({ format: space, inGamut: false });
+}
 
 export function stringToHexColor(colorString: string): string | null {
-  if (typeof colorString !== 'string' || !colorString.trim()) {
-    return null;
-  }
+  if (typeof colorString !== 'string' || !colorString.trim()) return null;
 
-  let hex = colorString.trim().toUpperCase();
-
-  if (hex.startsWith('#')) {
-    hex = hex.slice(1);
-  }
-  const hexRegex = /^([0-9A-F]{3}|[0-9A-F]{6}|[0-9A-F]{8})$/;
-
-  if (hexRegex.test(hex)) {
-    return `#${hex}`;
-  } else {
-    return null;
-  }
+  const hex = colorString.trim().replace(/^#/, '').toUpperCase();
+  return /^(?:[0-9A-F]{3}|[0-9A-F]{6}|[0-9A-F]{8})$/.test(hex) ? `#${hex}` : null;
 }
 
 export function stringToHsvColor(hsvString: string): IColorHsv | null {
-  try {
-    if (!hsvString || typeof hsvString !== 'string') {
-      throw new TypeError('Not a valid input');
-    }
+  if (typeof hsvString !== 'string') return null;
 
-    const lowerCaseString = hsvString.toLowerCase().trim();
+  const match = hsvString
+    .trim()
+    .match(
+      /^(?:hsv|hsva)\(\s*([\d.]+)\s*,\s*([\d.]+%?)\s*,\s*([\d.]+%?)(?:\s*,\s*([\d.]+))?\s*\)$/i
+    );
+  if (!match) return null;
 
-    const regex =
-      /^(hsv|hsva)\(\s*([\d.]+)\s*,\s*([\d.]+%?)\s*,\s*([\d.]+%?)(?:\s*,\s*([\d.]+))?\s*\)$/i;
+  const values = match.slice(1).map((part) => Number(part?.replace('%', '') ?? 1));
+  const [h, s, v, a = 1] = values;
+  if (![h, s, v, a].every(Number.isFinite)) return null;
 
-    const match = lowerCaseString.match(regex);
-
-    if (!match) {
-      throw new Error('No match found');
-    }
-
-    const [, funcName, hStr, sStr, vStr, aStr] = match;
-
-    const h = parseFloat(hStr);
-    const s = parseFloat(sStr.replace('%', ''));
-    const v = parseFloat(vStr.replace('%', ''));
-
-    let a = 1;
-    if (funcName === 'hsva' && aStr !== undefined) {
-      a = parseFloat(aStr);
-    }
-
-    if (isNaN(h) || isNaN(s) || isNaN(v) || isNaN(a)) {
-      throw new Error('Could not parse values');
-    }
-
-    const colorHsv: IColor['hsv'] = {
-      h: Math.min(360, Math.max(0, h)),
-
-      s: Math.min(100, Math.max(0, s)),
-
-      v: Math.min(100, Math.max(0, v)),
-
-      a: Math.min(1, Math.max(0, a)),
-    };
-
-    return colorHsv;
-  } catch {
-    return null;
-  }
+  return {
+    h: Math.min(360, Math.max(0, h)),
+    s: Math.min(100, Math.max(0, s)),
+    v: Math.min(100, Math.max(0, v)),
+    a: Math.min(1, Math.max(0, a)),
+  };
 }
 
 export function colorToHsvString(color: IColorHsv): string {
-  return `hsv(${[color.h.toFixed(2), color.s.toFixed(2), color.v.toFixed(2), color.a.toFixed(2)].map(Number).join(', ')})`;
+  return `hsv(${[color.h, color.s, color.v, color.a]
+    .map((value) => Number((value ?? 0).toFixed(2)))
+    .join(', ')})`;
 }
 
 export function colorToRgbString(color: IColorRgb): string {
-  if (color.a !== 1)
-    return `rgba(${[color.r.toFixed(2), color.g.toFixed(2), color.b.toFixed(2), color.a.toFixed(2)].map(Number).join(', ')})`;
-
-  return `rgb(${[color.r.toFixed(2), color.g.toFixed(2), color.b.toFixed(2)].map(Number).join(', ')})`;
+  const channels = [color.r, color.g, color.b].map((value) => Number(value.toFixed(2)));
+  return color.a === 1
+    ? `rgb(${channels.join(', ')})`
+    : `rgba(${[...channels, Number(color.a.toFixed(2))].join(', ')})`;
 }
 
-export function stringToRgbColor(colorString: string): IColor['rgb'] | null {
-  try {
-    if (!colorString || typeof colorString !== 'string') {
-      throw new TypeError('Not a valid input');
-    }
+export function stringToRgbColor(colorString: string): IColorRgb | null {
+  if (typeof colorString !== 'string') return null;
+  const match = colorString
+    .trim()
+    .match(/^(rgb|rgba)\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/i);
+  if (!match) return null;
 
-    const regex =
-      /^(rgb|rgba)\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/i;
+  const r = Number(match[2]);
+  const g = Number(match[3]);
+  const b = Number(match[4]);
+  const a = match[5] === undefined ? 1 : Number(match[5]);
+  if (![r, g, b, a].every(Number.isFinite)) return null;
+  if ([r, g, b].some((channel) => channel < 0 || channel > 255) || a < 0 || a > 1) return null;
 
-    const match = colorString.trim().toLowerCase().match(regex);
+  return { r, g, b, a };
+}
 
-    if (!match) {
-      throw new Error('No match found');
-    }
+export function colorToString(color: ColorValue, colorMode: ColorMode): string {
+  const parsed = parseColor(color);
+  if (!parsed) return color;
 
-    const r = parseFloat(match[2]);
-    const g = parseFloat(match[3]);
-    const b = parseFloat(match[4]);
-
-    const a = match[5] ? parseFloat(match[5]) : 1.0;
-
-    if (r > 255 || g > 255 || b > 255 || r < 0 || g < 0 || b < 0) {
-      throw new Error('Invalid color values');
-    }
-
-    if (a > 1.0 || a < 0.0) {
-      throw new Error('Invalid alpha value');
-    }
-
-    return { r, g, b, a };
-  } catch {
-    return null;
+  if (colorMode === 'hex') {
+    return parsed.to('srgb').toString({ format: 'hex', inGamut: true, collapse: false });
   }
-}
+  if (colorMode === 'rgb') {
+    const { coords, alpha } = parsed.to('srgb');
+    return colorToRgbString({
+      r: coords[0]! * 255,
+      g: coords[1]! * 255,
+      b: coords[2]! * 255,
+      a: alpha,
+    });
+  }
+  if (colorMode === 'hsv') {
+    const { coords, alpha } = parsed.to('hsv');
+    return colorToHsvString({ h: coords[0]!, s: coords[1]!, v: coords[2]!, a: alpha });
+  }
 
-export function colorToString(color: IColor, colorMode: ColorMode): string {
-  if (colorMode === 'rgb') return colorToRgbString(color.rgb);
-
-  if (colorMode === 'hsv') return colorToHsvString(color.hsv);
-
-  return color.hex;
+  return parsed.to(colorMode).toString({ format: colorMode, inGamut: false });
 }
 
 export function sortStops(a: GradientStop, b: GradientStop): number {

@@ -1,12 +1,11 @@
 'use client';
 
-import { IColor } from 'react-color-palette';
 import { AlertCircle, Check, Search, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export type PalettePreviewProps = {
-  bgColor: IColor;
-  primaryColor: IColor;
+  bgColor: string;
+  primaryColor: string;
   palette: string[];
 };
 
@@ -19,8 +18,8 @@ export const PalettePreview: React.FC<PalettePreviewProps> = ({
     data-testid="palette-preview"
     className="p-2 sm:p-6 md:p-8 rounded-lg grid gap-6 sm:gap-8 lg:gap-12"
     style={{
-      backgroundColor: bgColor.hex,
-      color: primaryColor.hex,
+      backgroundColor: bgColor,
+      color: primaryColor,
     }}
   >
     <section className="space-y-6">
@@ -72,8 +71,8 @@ export const PalettePreview: React.FC<PalettePreviewProps> = ({
             data-testid="palette-preview-primary-action"
             className="font-semibold shadow-sm"
             style={{
-              backgroundColor: primaryColor.hex,
-              color: bgColor.hex,
+              backgroundColor: primaryColor,
+              color: bgColor,
             }}
           >
             Primary Action
@@ -81,8 +80,8 @@ export const PalettePreview: React.FC<PalettePreviewProps> = ({
           <Button
             className="font-semibold bg-transparent border"
             style={{
-              borderColor: primaryColor.hex,
-              color: primaryColor.hex,
+              borderColor: primaryColor,
+              color: primaryColor,
             }}
           >
             Secondary Action
@@ -91,7 +90,7 @@ export const PalettePreview: React.FC<PalettePreviewProps> = ({
             variant="ghost"
             className="font-semibold hover:bg-black/5"
             style={{
-              color: primaryColor.hex,
+              color: primaryColor,
             }}
           >
             Ghost Action
@@ -125,7 +124,7 @@ export const PalettePreview: React.FC<PalettePreviewProps> = ({
             </div>
             <div
               className="w-10 h-6 rounded-full relative transition-colors"
-              style={{ backgroundColor: primaryColor.hex }}
+              style={{ backgroundColor: primaryColor }}
             >
               <div className="absolute right-1 top-1 size-4 rounded-full bg-white shadow-sm" />
             </div>
@@ -155,8 +154,8 @@ export const PalettePreview: React.FC<PalettePreviewProps> = ({
               <div
                 className="p-2 rounded-lg"
                 style={{
-                  backgroundColor: primaryColor.hex,
-                  color: bgColor.hex,
+                  backgroundColor: primaryColor,
+                  color: bgColor,
                 }}
               >
                 <AlertCircle className="size-5" />
@@ -180,7 +179,7 @@ export const PalettePreview: React.FC<PalettePreviewProps> = ({
           >
             <div
               className="size-12 rounded-full flex items-center justify-center border-2"
-              style={{ borderColor: primaryColor.hex }}
+              style={{ borderColor: primaryColor }}
             >
               <User className="size-6" />
             </div>

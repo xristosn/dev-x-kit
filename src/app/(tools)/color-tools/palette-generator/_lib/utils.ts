@@ -1,31 +1,66 @@
-import { ColorService, type IColor } from 'react-color-palette';
-import tinycolor from 'tinycolor2';
+import Color from 'colorjs.io';
+
+function toHex(color: Color): string {
+  return color.to('srgb').toString({ format: 'hex', collapse: false, inGamut: true });
+}
+
+function toRgb(color: string | Color): { r: number; g: number; b: number; a: number } {
+  const { coords, alpha } = new Color(color).to('srgb');
+  return {
+    r: (coords[0] ?? 0) * 255,
+    g: (coords[1] ?? 0) * 255,
+    b: (coords[2] ?? 0) * 255,
+    a: alpha,
+  };
+}
+
+function mix(start: string | Color, end: string | Color, amount: number): Color {
+  return Color.mix(start, end, amount / 100, { space: 'srgb' });
+}
+
+function isDark(color: Color): boolean {
+  const { r, g, b } = toRgb(color);
+  return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+}
+
+function isLight(color: Color): boolean {
+  const { r, g, b } = toRgb(color);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+}
+
+function withAlpha(color: string | Color, alpha: number): string {
+  const result = new Color(color);
+  result.alpha = alpha;
+  return toHex(result);
+}
+
+function adjustLightness(color: Color, amount: number): Color {
+  const hsl = color.to('hsl');
+  hsl.coords[2] = Math.min(100, Math.max(0, (hsl.coords[2] ?? 0) + amount));
+  return hsl;
+}
 
 export type PaletteGeneratorStoreValue = {
   theme: 'light' | 'dark';
   light: {
-    primaryColor: IColor;
-    bgColor: IColor;
+    primaryColor: string;
+    bgColor: string;
   };
   dark: {
-    primaryColor: IColor;
-    bgColor: IColor;
+    primaryColor: string;
+    bgColor: string;
   };
 };
 
 export const getDefaultPaletteGeneratorStoreValue = (): PaletteGeneratorStoreValue => ({
   theme: 'light',
   light: {
-    primaryColor:
-      typeof window === 'undefined' ? ({} as IColor) : ColorService.convert('hex', '#3b82f6'),
-    bgColor:
-      typeof window === 'undefined' ? ({} as IColor) : ColorService.convert('hex', '#f2f2f2'),
+    primaryColor: '#3b82f6',
+    bgColor: '#f2f2f2',
   },
   dark: {
-    primaryColor:
-      typeof window === 'undefined' ? ({} as IColor) : ColorService.convert('hex', '#3b82f6'),
-    bgColor:
-      typeof window === 'undefined' ? ({} as IColor) : ColorService.convert('hex', '#000000'),
+    primaryColor: '#3b82f6',
+    bgColor: '#000000',
   },
 });
 
@@ -35,51 +70,38 @@ export function generatePalettes(
 ): { palette: string[]; name: string } {
   const steps = 12;
   const baseIndex = 8;
-  const base = tinycolor(baseColor);
-  const bg = tinycolor(bgColor);
+  const base = new Color(baseColor);
+  const bg = new Color(bgColor);
 
-  const interpolate = (start: tinycolor.Instance, end: tinycolor.Instance, count: number) => {
-    const colors = [];
+  const interpolate = (start: Color, end: Color, count: number): string[] => {
+    const colors: string[] = [];
     for (let i = 0; i < count; i++) {
       const amount = (i / (count - 1)) * 100;
-      colors.push(tinycolor.mix(start, end, amount).toHexString());
+      colors.push(toHex(mix(start, end, amount)));
     }
     return colors;
   };
 
-  const start = tinycolor.mix(bgColor, baseColor, 7);
-
-  const isBgDark = bg.isDark();
-  let end;
-  if (isBgDark) {
-    end = tinycolor.mix(baseColor, '#ffffff', 75);
-  } else {
-    end = tinycolor.mix(baseColor, '#000000', 75);
-  }
+  const start = mix(bg, base, 7);
+  const end = mix(base, isDark(bg) ? '#ffffff' : '#000000', 75);
 
   const scale1 = interpolate(start, base, baseIndex + 1);
   const scale2 = interpolate(base, end, steps - baseIndex);
 
   const palette = [...scale1, ...scale2.slice(1)];
 
-  let name = base.toName();
-  if (name) {
-    name = name.charAt(0).toUpperCase() + name.slice(1);
-  } else {
-    const { h, s, l } = base.toHsl();
-    if (s < 0.1) {
-      name = l < 0.2 ? 'Black' : l > 0.8 ? 'White' : 'Gray';
-    } else {
-      if (h < 15 || h >= 345) name = 'Red';
-      else if (h < 45) name = 'Orange';
-      else if (h < 75) name = 'Yellow';
-      else if (h < 165) name = 'Green';
-      else if (h < 195) name = 'Cyan';
-      else if (h < 255) name = 'Blue';
-      else if (h < 315) name = 'Purple';
-      else name = 'Pink';
-    }
-  }
+  const [hue, saturation, lightness] = base.to('hsl').coords;
+  let name: string;
+  if ((saturation ?? 0) < 10) {
+    name = (lightness ?? 0) < 20 ? 'Black' : (lightness ?? 0) > 80 ? 'White' : 'Gray';
+  } else if ((hue ?? 0) < 15 || (hue ?? 0) >= 345) name = 'Red';
+  else if ((hue ?? 0) < 45) name = 'Orange';
+  else if ((hue ?? 0) < 75) name = 'Yellow';
+  else if ((hue ?? 0) < 165) name = 'Green';
+  else if ((hue ?? 0) < 195) name = 'Cyan';
+  else if ((hue ?? 0) < 255) name = 'Blue';
+  else if ((hue ?? 0) < 315) name = 'Purple';
+  else name = 'Pink';
 
   return { palette, name };
 }
@@ -98,9 +120,9 @@ export function paletteToCss(
   const fg = isDark ? '#ffffff' : '#000000';
 
   const calculateAlpha = (target: string, bg: string, tint: string) => {
-    const t = tinycolor(target).toRgb();
-    const b = tinycolor(bg).toRgb();
-    const ti = tinycolor(tint).toRgb();
+    const t = toRgb(target);
+    const b = toRgb(bg);
+    const ti = toRgb(tint);
 
     const diffR = ti.r - b.r;
     const diffG = ti.g - b.g;
@@ -117,32 +139,30 @@ export function paletteToCss(
   const alphaColors = solidColors.map((color) => {
     let alpha = calculateAlpha(color, bgColor, step9);
     if (alpha >= -0.05 && alpha <= 1.05) {
-      return tinycolor(step9)
-        .setAlpha(Math.min(Math.max(alpha, 0), 1))
-        .toHex8String();
+      return withAlpha(step9, Math.min(Math.max(alpha, 0), 1));
     }
 
     alpha = calculateAlpha(color, bgColor, fg);
     if (alpha >= -0.05 && alpha <= 1.05) {
-      return tinycolor(fg)
-        .setAlpha(Math.min(Math.max(alpha, 0), 1))
-        .toHex8String();
+      return withAlpha(fg, Math.min(Math.max(alpha, 0), 1));
     }
 
     return color;
   });
 
-  const bg = tinycolor(bgColor);
-  let bgCard, bgSidebar, bgMuted;
+  const bg = new Color(bgColor);
+  let bgCard: string;
+  let bgSidebar: string;
+  let bgMuted: string;
 
   if (isDark) {
-    bgCard = bg.clone().lighten(5).toHexString();
-    bgSidebar = bg.clone().lighten(2).toHexString();
-    bgMuted = bg.clone().lighten(8).toHexString();
+    bgCard = toHex(adjustLightness(bg, 5));
+    bgSidebar = toHex(adjustLightness(bg, 2));
+    bgMuted = toHex(adjustLightness(bg, 8));
   } else {
-    bgCard = bg.clone().lighten(5).toHexString();
-    bgSidebar = bg.clone().darken(2).toHexString();
-    bgMuted = bg.clone().darken(5).toHexString();
+    bgCard = toHex(adjustLightness(bg, 5));
+    bgSidebar = toHex(adjustLightness(bg, -2));
+    bgMuted = toHex(adjustLightness(bg, -5));
   }
 
   const lines = [];
@@ -194,8 +214,8 @@ export function paletteToChakraV3(
 ) {
   const name = paletteName.toLowerCase();
 
-  const firstLum = tinycolor(paletteColors[0]).getLuminance();
-  const lastLum = tinycolor(paletteColors[paletteColors.length - 1]).getLuminance();
+  const firstLum = new Color(paletteColors[0]).luminance;
+  const lastLum = new Color(paletteColors[paletteColors.length - 1]).luminance;
 
   const sortedColors = [...paletteColors];
   if (firstLum < lastLum) {
@@ -214,12 +234,12 @@ export function paletteToChakraV3(
   if (isDark) {
     bgPaletteColors = keys.map((_, i) => {
       const percentage = (i / (keys.length - 1)) * 100;
-      return tinycolor.mix('#ffffff', bgColor, percentage).toHexString();
+      return toHex(mix('#ffffff', bgColor, percentage));
     });
   } else {
     bgPaletteColors = keys.map((_, i) => {
       const percentage = (i / (keys.length - 1)) * 100;
-      return tinycolor.mix(bgColor, '#000000', percentage).toHexString();
+      return toHex(mix(bgColor, '#000000', percentage));
     });
   }
 
@@ -228,7 +248,7 @@ export function paletteToChakraV3(
     .join(',\n');
 
   const step600 = sortedColors[7];
-  const contrastValue = tinycolor(step600).isLight() ? 'black' : 'white';
+  const contrastValue = isLight(new Color(step600)) ? 'black' : 'white';
 
   return `import { createSystem, defineConfig, defaultConfig } from "@chakra-ui/react"
 

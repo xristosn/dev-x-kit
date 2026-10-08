@@ -21,11 +21,7 @@ describe('<ColorPopover />', () => {
 
   const renderPopover = (extra: Partial<React.ComponentProps<typeof ColorPopover>> = {}) => {
     const setValue = vi.fn();
-    const initialColor = {
-      hex: '#3B82F6',
-      rgb: { r: 59, g: 130, b: 246, a: 1 },
-      hsv: { h: 217, s: 75, v: 96, a: 1 },
-    };
+    const initialColor = '#3B82F6';
 
     render(
       <Providers>
@@ -55,7 +51,7 @@ describe('<ColorPopover />', () => {
     test('renders input with hex value by default', () => {
       renderPopover();
       const input = screen.getByTestId('color-popover-input');
-      expect(input).toHaveValue('#3B82F6');
+      expect(input).toHaveValue('#3b82f6');
     });
   });
 
@@ -82,7 +78,7 @@ describe('<ColorPopover />', () => {
     test('renders with defaultMode hex', () => {
       renderPopover({ defaultMode: 'hex' });
       const input = screen.getByTestId('color-popover-input');
-      expect(input).toHaveValue('#3B82F6');
+      expect(input).toHaveValue('#3b82f6');
     });
 
     test('renders with defaultMode rgb', () => {
@@ -94,7 +90,7 @@ describe('<ColorPopover />', () => {
     test('renders with defaultMode hsv', () => {
       renderPopover({ defaultMode: 'hsv' });
       const input = screen.getByTestId('color-popover-input');
-      expect(input).toHaveValue('hsv(217, 75, 96, 1)');
+      expect(input).toHaveValue('hsv(217.22, 76.02, 96.47, 1)');
     });
   });
 

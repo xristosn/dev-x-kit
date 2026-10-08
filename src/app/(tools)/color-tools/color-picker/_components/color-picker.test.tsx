@@ -1,7 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import type { IColor } from 'react-color-palette';
 import { afterEach, describe, expect, test, vi, beforeEach } from 'vitest';
 import { ColorPicker } from './color-picker';
 
@@ -14,7 +13,7 @@ vi.mock('react-color-palette', async (importOriginal) => {
 });
 
 vi.mock('@/hooks/use-web-storage', () => ({
-  useWebStorage: vi.fn((_key: string, _storageType: string, defaultValue: IColor) =>
+  useWebStorage: vi.fn((_key: string, _storageType: string, defaultValue: string) =>
     useState(defaultValue)
   ),
 }));

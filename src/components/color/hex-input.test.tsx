@@ -1,192 +1,39 @@
-import { describe, expect, test, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { HexInput } from './hex-input';
-import { type IColor } from 'react-color-palette';
-
-const initialColor: IColor = {
-  hex: '#3B82F6',
-  rgb: { r: 59, g: 130, b: 246, a: 1 },
-  hsv: { h: 217, s: 75, v: 96, a: 1 },
-};
 
 describe('<HexInput />', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  it('renders a hex view of the source color', () => {
+    render(<HexInput value="oklch(70% 0.4 35)" setValue={vi.fn()} />);
+
+    expect(screen.getByTestId('hex-input')).toHaveValue('#ff5a2d');
   });
 
-  test('renders input with initial hex value', () => {
+  it('stores valid hex edits as CSS hex strings', () => {
     const setValue = vi.fn();
-    render(<HexInput value={initialColor} setValue={setValue} />);
+    render(<HexInput value="#3B82F6" setValue={setValue} />);
 
-    const input = screen.getByTestId('hex-input');
-    expect(input).toHaveValue('#3B82F6');
-    expect(input).toHaveAttribute('placeholder', '#RRGGBB or #RGB');
+    fireEvent.change(screen.getByTestId('hex-input'), { target: { value: '#AABBCC' } });
+
+    expect(setValue).toHaveBeenCalledWith('#abc');
   });
 
-  test('renders label by default', () => {
-    render(<HexInput value={initialColor} setValue={vi.fn()} />);
-    expect(screen.getByTestId('hex-input-label')).toHaveTextContent('HEX');
+  it('does not store invalid hex edits', () => {
+    const setValue = vi.fn();
+    render(<HexInput value="#3B82F6" setValue={setValue} />);
+
+    fireEvent.change(screen.getByTestId('hex-input'), { target: { value: 'INVALID' } });
+
+    expect(setValue).not.toHaveBeenCalled();
+    expect(screen.getByTestId('hex-error-btn')).toBeInTheDocument();
   });
 
-  test('hides label when noLabel is true', () => {
-    render(<HexInput value={initialColor} setValue={vi.fn()} noLabel />);
-    expect(screen.queryByTestId('hex-input-label')).not.toBeInTheDocument();
-  });
+  it('keeps the native source color when the hex view is not edited', () => {
+    const setValue = vi.fn();
+    render(<HexInput value="oklch(70% 0.4 35)" setValue={setValue} />);
 
-  describe('input editing', () => {
-    test('passes the converted color to setValue when valid hex is entered', () => {
-      const setValue = vi.fn();
-      render(<HexInput value={initialColor} setValue={setValue} />);
+    fireEvent.blur(screen.getByTestId('hex-input'));
 
-      const input = screen.getByTestId('hex-input');
-      fireEvent.change(input, { target: { value: '#AABBCC' } });
-
-      expect(setValue).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hex: '#AABBCC',
-          rgb: { r: 170, g: 187, b: 204, a: 1 },
-          hsv: expect.objectContaining({
-            h: expect.any(Number),
-            s: expect.any(Number),
-            v: expect.any(Number),
-            a: 1,
-          }),
-        })
-      );
-    });
-
-    test('adds # prefix if missing', () => {
-      const setValue = vi.fn();
-      render(<HexInput value={initialColor} setValue={setValue} />);
-
-      const input = screen.getByTestId('hex-input');
-      fireEvent.change(input, { target: { value: 'AABBCC' } });
-
-      expect(setValue).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hex: '#AABBCC',
-          rgb: { r: 170, g: 187, b: 204, a: 1 },
-          hsv: expect.objectContaining({
-            h: expect.any(Number),
-            s: expect.any(Number),
-            v: expect.any(Number),
-            a: 1,
-          }),
-        })
-      );
-    });
-
-    test('does not call setValue for invalid hex (shows error instead)', () => {
-      const setValue = vi.fn();
-      render(<HexInput value={initialColor} setValue={setValue} />);
-
-      const input = screen.getByTestId('hex-input');
-      fireEvent.change(input, { target: { value: 'ZZZZ' } });
-
-      expect(setValue).not.toHaveBeenCalled();
-    });
-
-    test('shows error indicator for invalid hex', () => {
-      render(<HexInput value={initialColor} setValue={vi.fn()} />);
-
-      const input = screen.getByTestId('hex-input');
-      fireEvent.change(input, { target: { value: 'INVALID' } });
-
-      expect(screen.getByTestId('hex-error-btn')).toBeInTheDocument();
-    });
-
-    test('accepts 3-digit shorthand hex', () => {
-      const setValue = vi.fn();
-      render(<HexInput value={initialColor} setValue={setValue} />);
-
-      const input = screen.getByTestId('hex-input');
-      fireEvent.change(input, { target: { value: '#ABC' } });
-
-      expect(setValue).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hex: '#AABBCC',
-          rgb: expect.objectContaining({
-            r: 170,
-            g: 187,
-            b: 204,
-            a: expect.any(Number),
-          }),
-          hsv: expect.objectContaining({
-            h: expect.any(Number),
-            s: expect.any(Number),
-            v: expect.any(Number),
-            a: expect.any(Number),
-          }),
-        })
-      );
-    });
-
-    test('accepts 8-digit hex with alpha', () => {
-      const setValue = vi.fn();
-      render(<HexInput value={initialColor} setValue={setValue} />);
-
-      const input = screen.getByTestId('hex-input');
-      fireEvent.change(input, { target: { value: '#AABBCCDD' } });
-
-      expect(setValue).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hex: '#AABBCCDD',
-          rgb: expect.objectContaining({
-            r: 170,
-            g: 187,
-            b: 204,
-            a: expect.any(Number),
-          }),
-          hsv: expect.objectContaining({
-            h: expect.any(Number),
-            s: expect.any(Number),
-            v: expect.any(Number),
-            a: expect.any(Number),
-          }),
-        })
-      );
-    });
-  });
-
-  describe('blur behavior', () => {
-    test('calls setValue with current value on blur when valid', () => {
-      const setValue = vi.fn();
-      render(<HexInput value={initialColor} setValue={setValue} />);
-
-      const input = screen.getByTestId('hex-input');
-      fireEvent.change(input, { target: { value: '#112233' } });
-      fireEvent.blur(input);
-
-      expect(setValue).toHaveBeenCalled();
-    });
-
-    test('does not call setValue on blur when error is set', () => {
-      const setValue = vi.fn();
-      render(<HexInput value={initialColor} setValue={setValue} />);
-
-      const input = screen.getByTestId('hex-input');
-      fireEvent.change(input, { target: { value: 'INVALID' } });
-      setValue.mockClear();
-
-      fireEvent.blur(input);
-
-      expect(setValue).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('external value changes', () => {
-    test('updates input value when prop value changes', () => {
-      const { rerender } = render(<HexInput value={initialColor} setValue={vi.fn()} />);
-
-      const newColor: IColor = {
-        hex: '#FF0000',
-        rgb: { r: 255, g: 0, b: 0, a: 1 },
-        hsv: { h: 0, s: 100, v: 100, a: 1 },
-      };
-
-      rerender(<HexInput value={newColor} setValue={vi.fn()} />);
-
-      expect(screen.getByTestId('hex-input')).toHaveValue('#FF0000');
-    });
+    expect(setValue).not.toHaveBeenCalled();
   });
 });

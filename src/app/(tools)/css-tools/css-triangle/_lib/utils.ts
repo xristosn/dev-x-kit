@@ -1,5 +1,3 @@
-import { IColor } from 'react-color-palette';
-
 export const DIRECTIONS = [
   'Up Left',
   'Up',
@@ -19,14 +17,14 @@ export function getTriangleStyle(
   direction: Direction,
   width: number,
   height: number,
-  color: IColor
+  color: string
 ) {
   const w = `${width}px`;
   const h = `${height}px`;
   const w2 = `${width / 2}px`;
   const h2 = `${height / 2}px`;
   const T = 'transparent';
-  const C = color.hex;
+  const C = color;
 
   const styles = {
     'Up Left': {

@@ -1,6 +1,18 @@
-import { Instance as TinyColorInstance } from 'tinycolor2';
+export type ColorOperation =
+  | 'analogous'
+  | 'monochromatic'
+  | 'splitcomplement'
+  | 'triad'
+  | 'tetrad'
+  | 'complement'
+  | 'lighten'
+  | 'darken'
+  | 'brighten'
+  | 'desaturate'
+  | 'saturate'
+  | 'spin';
 
-export const COLOR_COMBINATION: (keyof TinyColorInstance)[] = [
+export const COLOR_COMBINATION: ColorOperation[] = [
   'analogous',
   'monochromatic',
   'splitcomplement',
@@ -9,7 +21,7 @@ export const COLOR_COMBINATION: (keyof TinyColorInstance)[] = [
   'complement',
 ];
 
-export const SHADES: Array<{ label: string; colorInstance: keyof TinyColorInstance }> = [
+export const SHADES: Array<{ label: string; colorInstance: ColorOperation }> = [
   {
     label: 'Lighter',
     colorInstance: 'lighten',
