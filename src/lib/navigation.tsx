@@ -153,6 +153,14 @@ export const NAVIGATION = new NavigationManager([
         summary:
           'Create CSS background patterns by adjusting colors, shapes, and sizes, with a live preview as you work.',
       },
+      {
+        label: 'Text Gradient Generator',
+        path: '/css-tools/css-text-gradient-generator',
+        fullName: 'CSS Text Gradient Generator',
+        icon: <Type />,
+        summary:
+          'Create gradient-filled text with linear or radial colors, adjust directions, positions, and stops, and preview it before exporting CSS, Tailwind V3, or JSS.',
+      },
     ],
   },
 
