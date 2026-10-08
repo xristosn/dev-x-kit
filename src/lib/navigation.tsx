@@ -7,6 +7,7 @@ import {
   FileUp,
   Fingerprint,
   Image,
+  SlidersHorizontal,
   Link2,
   Maximize,
   PaintBucket,
@@ -160,6 +161,23 @@ export const NAVIGATION = new NavigationManager([
         icon: <Type />,
         summary:
           'Create gradient-filled text with linear or radial colors, adjust directions, positions, and stops, and preview it before exporting CSS, Tailwind V3, or JSS.',
+      },
+      {
+        label: 'Filter Generator',
+        path: '/css-tools/css-filter-generator',
+        fullName: 'CSS Filter Generator',
+        icon: <SlidersHorizontal />,
+        tags: [
+          'CSS filters',
+          'blur',
+          'brightness',
+          'contrast',
+          'drop-shadow',
+          'grayscale',
+          'hue-rotate',
+        ],
+        summary:
+          'Build ordered CSS filter chains, preview the effect live, and export CSS, Tailwind, or JSS.',
       },
     ],
   },
