@@ -52,6 +52,11 @@ describe('<ImageCompressor />', () => {
     render(<ImageCompressor />);
 
     await user.upload(screen.getByTestId('image-compressor-file-input'), [firstImage, secondImage]);
+
+    expect(screen.getByTestId('image-file-name-0')).toHaveTextContent('first.png');
+    expect(screen.getByTestId('image-file-size-0')).toHaveTextContent('14 B');
+    expect(screen.getByTestId('image-file-name-1')).toHaveTextContent('second.jpg');
+
     fireEvent.change(screen.getByTestId('image-compressor-quality'), {
       target: { value: '0.5' },
     });

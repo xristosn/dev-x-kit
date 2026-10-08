@@ -87,6 +87,11 @@ describe('<ImageConverter />', () => {
     render(<ImageConverter />);
 
     await user.upload(screen.getByTestId('image-converter-upload'), file);
+
+    expect(screen.getByTestId('image-file-name-0')).toHaveTextContent('already.webp');
+    expect(screen.getByTestId('image-file-type-0')).toHaveTextContent('image/webp');
+    expect(screen.getByTestId('image-file-size-0')).toHaveTextContent('8 B');
+
     await user.click(screen.getByTestId('image-converter-convert'));
 
     expect(Compressor).not.toHaveBeenCalled();

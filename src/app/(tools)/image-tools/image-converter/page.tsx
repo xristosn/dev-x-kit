@@ -3,6 +3,7 @@
 import { ColorPopover } from '@/components/color/color-popover';
 import { FaqSection, type FaqItem } from '@/components/faq-section';
 import { InputWrapper } from '@/components/input-wrapper';
+import { ImageFileList } from '@/components/image-file-list';
 import { Button } from '@/components/ui/button';
 import { FileUpload } from '@/components/ui/file-upload';
 import { Spinner } from '@/components/ui/spinner';
@@ -162,6 +163,7 @@ export default function ImageConverter() {
               state === ConversionState.None && !files.length && 'editor-height'
             )}
           />
+          <ImageFileList files={files} />
         </div>
       )}
 

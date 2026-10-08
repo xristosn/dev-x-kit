@@ -48,6 +48,10 @@ describe('<ImageResizer />', () => {
     expect(screen.queryByTestId('image-resizer-width')).not.toBeInTheDocument();
     await user.upload(screen.getByTestId('image-resizer-file-input'), file);
 
+    expect(screen.getByTestId('image-file-name-0')).toHaveTextContent('photo.png');
+    expect(screen.getByTestId('image-file-type-0')).toHaveTextContent('image/png');
+    expect(screen.getByTestId('image-file-size-0')).toHaveTextContent('5 B');
+
     const width = await screen.findByTestId('image-resizer-width');
     const height = screen.getByTestId('image-resizer-height');
     await waitFor(() => {

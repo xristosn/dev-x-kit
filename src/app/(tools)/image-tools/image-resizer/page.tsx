@@ -1,6 +1,7 @@
 'use client';
 
 import { FaqSection, type FaqItem } from '@/components/faq-section';
+import { ImageFileList } from '@/components/image-file-list';
 import FileUpload from '@/components/ui/file-upload';
 import { useWebStorage } from '@/hooks/use-web-storage';
 import { cn } from '@/lib/utils';
@@ -88,6 +89,7 @@ export default function ImageResizer() {
           onDropAccepted={(files) => onFileChange(files[0])}
           dropZoneClassName={cn(!file && 'editor-height')}
         />
+        <ImageFileList files={file ? [file] : []} />
 
         {file && (
           <ImageResizerSettings

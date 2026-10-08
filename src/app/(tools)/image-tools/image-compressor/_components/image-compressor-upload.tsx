@@ -1,3 +1,4 @@
+import { ImageFileList } from '@/components/image-file-list';
 import { FileUpload } from '@/components/ui/file-upload';
 import { cn } from '@/lib/utils';
 import { MAX_FILES } from '../_lib/utils';
@@ -29,6 +30,7 @@ export function ImageCompressorUpload({
         onDropAccepted={onFilesAccepted}
         dropZoneClassName={cn(!files.length && 'editor-height')}
       />
+      <ImageFileList files={files} />
     </div>
   );
 }
