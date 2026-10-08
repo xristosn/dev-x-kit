@@ -1,9 +1,9 @@
 import { Container } from '@/components/container';
-import ToolsFilter from '@/components/tools-filter';
 import { FaqSection } from '@/components/faq-section';
+import ToolsFilter from '@/components/tools-filter';
+import { SITE_URL } from '@/lib/constants';
 import { NAVIGATION } from '@/lib/navigation';
 import { createSeoMetadata, SITE_NAME } from '@/lib/seo-metadata';
-import { SITE_URL } from '@/lib/constants';
 import Link from 'next/link';
 import { PiBracketsCurly, PiCode, PiHash } from 'react-icons/pi';
 import { TbBolt, TbShield } from 'react-icons/tb';
@@ -46,7 +46,7 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
+            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-bold tracking-tight">
               <span className="text-foreground">Free online developer tools</span>
               <br />
               <span className="text-primary">for everyday coding tasks.</span>
